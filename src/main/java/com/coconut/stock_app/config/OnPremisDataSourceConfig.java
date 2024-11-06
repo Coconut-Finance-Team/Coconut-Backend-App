@@ -1,52 +1,65 @@
 package com.coconut.stock_app.config;
 
-import jakarta.persistence.EntityManagerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
-import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
+import java.util.HashMap;
 
 @Configuration
-@EnableTransactionManagement
 @EnableJpaRepositories(
         basePackages = "com.coconut.stock_app.repository.on_premis",  // On-Premis Repository 위치
-        entityManagerFactoryRef = "onPremisEntityManagerFactory",
+        entityManagerFactoryRef = "onPremisEntityManager",
         transactionManagerRef = "onPremisTransactionManager"
 )
 public class OnPremisDataSourceConfig {
+
+    // EntityManagerFactory 설정
+    @Bean
+    @Primary
+    public LocalContainerEntityManagerFactoryBean onPremisEntityManager() {
+        LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
+        em.setDataSource(onPremisDatabaseDataSource());
+        em.setPackagesToScan(new String[] {"com.coconut.stock_app.entity.on_premis"});
+
+        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+        vendorAdapter.setShowSql(true);
+        vendorAdapter.setGenerateDdl(true);
+        em.setJpaVendorAdapter(vendorAdapter);
+
+        HashMap<String, Object> prop = new HashMap<>();
+        prop.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
+        prop.put("hibernate.hbm2ddl.auto", "update");
+        prop.put("hibernate.format_sql", true);
+        em.setJpaPropertyMap(prop);
+
+        return em;
+    }
+
     // 데이터 소스 설정
-    @Bean(name = "onPremisDataSource")
-    @ConfigurationProperties(prefix = "spring.datasource.on-premis.private")
-    public DataSource dataSource() {
+    @Primary
+    @Bean
+    @ConfigurationProperties(prefix = "spring.datasource.on-premis")
+    public DataSource onPremisDatabaseDataSource() {
         return DataSourceBuilder.create().build();
     }
 
-    // EntityManagerFactory 설정
-    @Bean(name = "onPremisEntityManagerFactory")
-    public LocalContainerEntityManagerFactoryBean entityManagerFactory(
-            EntityManagerFactoryBuilder builder,
-            @Qualifier("onPremisDataSource") DataSource dataSource) {
-        return builder
-                .dataSource(dataSource)
-                .packages("com.example.onpremis.entity") // Entity 클래스의 위치를 지정
-                .persistenceUnit("onPremis")
-                .build();
-    }
 
     // TransactionManager 설정
-    @Bean(name = "onPremisTransactionManager")
-    public PlatformTransactionManager transactionManager(
-            @Qualifier("onPremisEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
-        return new JpaTransactionManager(entityManagerFactory);
+    @Bean
+    @Primary
+    public PlatformTransactionManager onPremisTransactionManager() {
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
+        transactionManager.setEntityManagerFactory(onPremisEntityManager().getObject());
+        return transactionManager;
     }
 }
 
