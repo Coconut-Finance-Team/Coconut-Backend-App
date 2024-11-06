@@ -13,7 +13,7 @@ public class SecurityConfig {
         http
                 .authorizeRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers("*").permitAll() // 인증 없이 접근 허용
+                                .requestMatchers("/api/v1/stock/**").permitAll() // /api/v1/stock 하위 모든 경로 허용
                                 .anyRequest().authenticated()
                 )
                 .csrf().disable(); // CSRF 비활성화 (필요한 경우)

@@ -4,6 +4,7 @@ import com.coconut.stock_app.config.ApiConfig;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -14,19 +15,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
+@RequiredArgsConstructor
 public class TokenService {
-
     private final ApiConfig apiConfig;
-    private final RestTemplate restTemplate;
-
-    private String accessToken;
+    private final RestTemplate restTemplate = new RestTemplate();
+    private String accessToken; // 토큰이 만료될 때마다 값 갱신
     private Instant tokenExpiryTime; // 토큰 만료 시간을 저장하는 변수
-
-    @Autowired
-    public TokenService(ApiConfig apiConfig) {
-        this.apiConfig = apiConfig;
-        this.restTemplate = new RestTemplate();
-    }
 
     public String getAccessToken() {
         // 토큰이 존재하고 만료되지 않은 경우 캐시된 토큰을 반환

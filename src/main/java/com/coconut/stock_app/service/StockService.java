@@ -2,7 +2,7 @@ package com.coconut.stock_app.service;
 
 import com.coconut.stock_app.config.ApiConfig;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -12,23 +12,15 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
+@RequiredArgsConstructor
 public class StockService {
     private final ApiConfig apiConfig;
     private final TokenService tokenService;
-    private final RestTemplate restTemplate;
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    @Autowired
-    public StockService(ApiConfig apiConfig, TokenService tokenService) {
-        this.apiConfig = apiConfig;
-        this.tokenService = tokenService;
-        this.restTemplate = new RestTemplate();
-    }
 
-    // StockService.java
     public Map<String, Object> getKOSPIIndex() {
-        System.out.println("StockService: getKOSPIIndex called"); // 로그 추가
         String accessToken = tokenService.getAccessToken();
-        System.out.println("Access Token: " + accessToken); // Access Token 확인
         return getIndex("0001");  // 코스피 종목 코드
     }
 
