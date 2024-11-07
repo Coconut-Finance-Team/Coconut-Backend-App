@@ -1,7 +1,10 @@
 package com.coconut.stock_app.entity.on_premise;
 
+import com.coconut.stock_app.entity.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Trade {
+public class Trade extends BaseEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long tradeId;
@@ -28,12 +31,6 @@ public class Trade {
 
     @Column(nullable = false)
     private BigDecimal fee = BigDecimal.valueOf(10.00);
-
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
 
     @ManyToOne
     @JoinColumn(name = "buy_order_id", referencedColumnName = "orderId", nullable = false)

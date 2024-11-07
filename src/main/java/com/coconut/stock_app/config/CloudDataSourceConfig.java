@@ -26,7 +26,8 @@ public class CloudDataSourceConfig {
     public LocalContainerEntityManagerFactoryBean cloudEntityManager() {
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(cloudDatabaseDataSource());
-        em.setPackagesToScan(new String[] {"com.coconut.stock_app.entity.cloud"});
+        em.setPackagesToScan(new String[] {"com.coconut.stock_app.entity.cloud",
+                "com.coconut.stock_app.entity.common"});
 
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         vendorAdapter.setShowSql(true);

@@ -1,7 +1,10 @@
 package com.coconut.stock_app.entity.cloud;
 
+import com.coconut.stock_app.entity.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class StockChart {
+public class StockChart extends BaseEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long chartId;
@@ -34,12 +37,6 @@ public class StockChart {
 
     @Column(nullable = false)
     private Long volume;
-
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
 
     @ManyToOne
     @JoinColumn(name = "stock_code", referencedColumnName = "stockCode", nullable = false)

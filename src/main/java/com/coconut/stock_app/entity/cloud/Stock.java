@@ -1,7 +1,10 @@
 package com.coconut.stock_app.entity.cloud;
 
+import com.coconut.stock_app.entity.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Stock {
+public class Stock extends BaseEntity implements Serializable {
     @Id
     @Column(length = 20)
     private String stockCode;
@@ -31,12 +34,6 @@ public class Stock {
     private LocalDate listedDate;
 
     private LocalDate delistedDate;
-
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StockChart> stockCharts;

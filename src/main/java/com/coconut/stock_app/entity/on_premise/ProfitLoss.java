@@ -1,7 +1,10 @@
 package com.coconut.stock_app.entity.on_premise;
 
+import com.coconut.stock_app.entity.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -11,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProfitLoss {
+public class ProfitLoss extends BaseEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long profitLossId;
@@ -35,12 +38,6 @@ public class ProfitLoss {
 
     @Column(nullable = false)
     private int saleQuantity;
-
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
 
     @ManyToOne
     @JoinColumn(name = "account_id", referencedColumnName = "accountId", nullable = false)

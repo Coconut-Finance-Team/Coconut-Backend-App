@@ -28,7 +28,8 @@ public class OnPremiseDataSourceConfig {
     public LocalContainerEntityManagerFactoryBean onPremiseEntityManager() {
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(onPremiseDatabaseDataSource());
-        em.setPackagesToScan(new String[] {"com.coconut.stock_app.entity.on_premise"});
+        em.setPackagesToScan(new String[] {"com.coconut.stock_app.entity.on_premise",
+                "com.coconut.stock_app.entity.common"});
 
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         vendorAdapter.setShowSql(true);

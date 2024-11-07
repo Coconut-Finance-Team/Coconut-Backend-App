@@ -1,7 +1,10 @@
 package com.coconut.stock_app.entity.on_premise;
 
+import com.coconut.stock_app.entity.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Account {
+public class Account extends BaseEntity implements Serializable {
     @Id
     private String accountId;
 
@@ -33,12 +36,6 @@ public class Account {
     private BigDecimal withdrawableAmount;
 
     private BigDecimal deposit;
-
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "userId")
