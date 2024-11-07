@@ -15,12 +15,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequiredArgsConstructor
 public class StockService {
     private final ApiConfig apiConfig;
-    private final TokenService tokenService;
-    private final RestTemplate restTemplate = new RestTemplate();
-
+    private final KoreaInvestmentTokenService koreaInvestmentTokenService;
+    private final RestTemplate restTemplate;
 
     public Map<String, Object> getKOSPIIndex() {
-        String accessToken = tokenService.getAccessToken();
+        String accessToken = koreaInvestmentTokenService.getAccessToken();
         return getIndex("0001");  // 코스피 종목 코드
     }
 
@@ -38,7 +37,7 @@ public class StockService {
 
         // 요청 헤더 설정
         HttpHeaders headers = new HttpHeaders();
-        headers.set("authorization", "Bearer " + tokenService.getAccessToken());
+        headers.set("authorization", "Bearer " + koreaInvestmentTokenService.getAccessToken());
         headers.set("appkey", apiConfig.getAppKey());
         headers.set("appsecret", apiConfig.getAppSecret());
         headers.set("tr_id", "FHPUP02100000");  // 트랜잭션 ID
