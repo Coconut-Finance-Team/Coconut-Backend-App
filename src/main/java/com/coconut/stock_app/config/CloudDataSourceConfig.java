@@ -15,7 +15,7 @@ import java.util.HashMap;
 
 @Configuration
 @EnableJpaRepositories(
-        basePackages = "com.coconut.stock_app.repository.cloud",  // On-Premis Repository 위치
+        basePackages = "com.coconut.stock_app.repository.cloud",  // Cloud Repository 위치
         entityManagerFactoryRef = "cloudEntityManager",
         transactionManagerRef = "cloudTransactionManager"
 )
