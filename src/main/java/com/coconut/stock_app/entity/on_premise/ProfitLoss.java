@@ -1,33 +1,40 @@
-package com.coconut.stock_app.entity.on_premis;
+package com.coconut.stock_app.entity.on_premise;
 
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "transactions")
+@Table(name = "profit_loss")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Transaction {
+public class ProfitLoss {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long transactionId;
+    private Long profitLossId;
 
-    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private String stockCode;
+
+    @Column(nullable = false, length = 100)
+    private String stockName;
+
     @Column(nullable = false)
-    private TransactionsTransactionTypeEnum transactionType;
+    private BigDecimal purchasePricePerShare;
 
     @Column(nullable = false)
-    private BigDecimal amount;
+    private BigDecimal salePricePerShare;
+
+    private BigDecimal profitRate;
 
     @Column(nullable = false)
-    private LocalDate transactionDate;
+    private BigDecimal fee;
 
-    private String description;
+    @Column(nullable = false)
+    private int saleQuantity;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -39,10 +46,3 @@ public class Transaction {
     @JoinColumn(name = "account_id", referencedColumnName = "accountId", nullable = false)
     private Account account;
 }
-
-
-enum TransactionsTransactionTypeEnum {
-    DEPOSIT,
-    WITHDRAWAL
-}
-

@@ -1,4 +1,4 @@
-package com.coconut.stock_app.entity.on_premis;
+package com.coconut.stock_app.entity.on_premise;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

@@ -16,19 +16,19 @@ import java.util.HashMap;
 
 @Configuration
 @EnableJpaRepositories(
-        basePackages = "com.coconut.stock_app.repository.on_premis",  // On-Premis Repository 위치
-        entityManagerFactoryRef = "onPremisEntityManager",
-        transactionManagerRef = "onPremisTransactionManager"
+        basePackages = "com.coconut.stock_app.repository.on_premise",  // On-Premise Repository 위치
+        entityManagerFactoryRef = "onPremiseEntityManager",
+        transactionManagerRef = "onPremiseTransactionManager"
 )
-public class OnPremisDataSourceConfig {
+public class OnPremiseDataSourceConfig {
 
     // EntityManagerFactory 설정
     @Bean
     @Primary
-    public LocalContainerEntityManagerFactoryBean onPremisEntityManager() {
+    public LocalContainerEntityManagerFactoryBean onPremiseEntityManager() {
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-        em.setDataSource(onPremisDatabaseDataSource());
-        em.setPackagesToScan(new String[] {"com.coconut.stock_app.entity.on_premis"});
+        em.setDataSource(onPremiseDatabaseDataSource());
+        em.setPackagesToScan(new String[] {"com.coconut.stock_app.entity.on_premise"});
 
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         vendorAdapter.setShowSql(true);
@@ -47,8 +47,8 @@ public class OnPremisDataSourceConfig {
     // 데이터 소스 설정
     @Primary
     @Bean
-    @ConfigurationProperties(prefix = "spring.datasource.on-premis")
-    public DataSource onPremisDatabaseDataSource() {
+    @ConfigurationProperties(prefix = "spring.datasource.on-premise")
+    public DataSource onPremiseDatabaseDataSource() {
         return DataSourceBuilder.create().build();
     }
 
@@ -56,9 +56,9 @@ public class OnPremisDataSourceConfig {
     // TransactionManager 설정
     @Bean
     @Primary
-    public PlatformTransactionManager onPremisTransactionManager() {
+    public PlatformTransactionManager onPremiseTransactionManager() {
         JpaTransactionManager transactionManager = new JpaTransactionManager();
-        transactionManager.setEntityManagerFactory(onPremisEntityManager().getObject());
+        transactionManager.setEntityManagerFactory(onPremiseEntityManager().getObject());
         return transactionManager;
     }
 }
