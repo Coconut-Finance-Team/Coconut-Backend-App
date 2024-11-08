@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -15,7 +16,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Service
 @RequiredArgsConstructor
-public class KoreaInvestmentTokenService {
+public class KISApiService {
     private final ApiConfig apiConfig;
     private final RestTemplate restTemplate;
     private String accessToken; // 토큰이 만료될 때마다 값 갱신
@@ -29,7 +30,7 @@ public class KoreaInvestmentTokenService {
         }
 
         // 새로운 토큰을 발급 요청
-        String url = apiConfig.getApiUrl() + "/oauth2/tokenP";
+        String url = apiConfig.getRestapiUrl() + "/oauth2/tokenP";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -59,5 +60,32 @@ public class KoreaInvestmentTokenService {
             e.printStackTrace();
             throw new RuntimeException("Failed to get access token", e);
         }
+    }
+
+    public String getWebSocketKey(String apiUrl) { // URL을 메서드 매개변수로 받음
+        // 요청 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // 요청 바디 설정
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("grant_type", "client_credentials");
+        requestBody.put("appkey", apiConfig.getAppKey());
+        requestBody.put("secretkey", apiConfig.getAppSecret());
+
+        // HTTP 엔티티 생성 (헤더 + 바디)
+        HttpEntity<String> entity = new HttpEntity<>(requestBody.toString(), headers);
+
+        // RestTemplate 사용하여 POST 요청 보내기
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> response = restTemplate.exchange(apiUrl + "/oauth2/Approval", HttpMethod.POST, entity,
+                String.class);
+
+        // 응답 JSON에서 approval_key 추출
+        JSONObject responseBody = new JSONObject(response.getBody());
+        String approvalKey = responseBody.getString("approval_key");
+
+        System.out.println("WebSocket 접속키: " + approvalKey);
+        return approvalKey;
     }
 }
