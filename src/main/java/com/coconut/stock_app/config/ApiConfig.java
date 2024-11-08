@@ -1,19 +1,17 @@
 package com.coconut.stock_app.config;
 
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Getter
+@Setter
 @Configuration
+@ConfigurationProperties(prefix = "koreainvestment")
 public class ApiConfig {
-    @Value("${koreainvestment.appKey}")
     private String appKey;
-
-    @Value("${koreainvestment.appSecret}")
     private String appSecret;
-
-    @Value("${koreainvestment.apiUrl}")
-    private String apiUrl;
-
+    private String restapiUrl;
+    private String websocketUrl;
 }
