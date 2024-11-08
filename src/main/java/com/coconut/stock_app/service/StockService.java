@@ -15,11 +15,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequiredArgsConstructor
 public class StockService {
     private final ApiConfig apiConfig;
-    private final KoreaInvestmentTokenService koreaInvestmentTokenService;
+    private final KISApiService KISApiService;
     private final RestTemplate restTemplate;
 
     public Map<String, Object> getKOSPIIndex() {
-        String accessToken = koreaInvestmentTokenService.getAccessToken();
+        String accessToken = KISApiService.getAccessToken();
         return getIndex("0001");  // 코스피 종목 코드
     }
 
@@ -30,14 +30,14 @@ public class StockService {
     private Map<String, Object> getIndex(String inputIscd) {
         // API 엔드포인트 URL 설정
         String url = UriComponentsBuilder.fromHttpUrl(
-                        apiConfig.getApiUrl() + "/uapi/domestic-stock/v1/quotations/inquire-index-price")
+                        apiConfig.getRestapiUrl() + "/uapi/domestic-stock/v1/quotations/inquire-index-price")
                 .queryParam("FID_COND_MRKT_DIV_CODE", "U") // 시장 분류 코드
                 .queryParam("FID_INPUT_ISCD", inputIscd) // 종목 코드 (코스피: 0001, 코스닥: 1001)
                 .toUriString();
 
         // 요청 헤더 설정
         HttpHeaders headers = new HttpHeaders();
-        headers.set("authorization", "Bearer " + koreaInvestmentTokenService.getAccessToken());
+        headers.set("authorization", "Bearer " + KISApiService.getAccessToken());
         headers.set("appkey", apiConfig.getAppKey());
         headers.set("appsecret", apiConfig.getAppSecret());
         headers.set("tr_id", "FHPUP02100000");  // 트랜잭션 ID
