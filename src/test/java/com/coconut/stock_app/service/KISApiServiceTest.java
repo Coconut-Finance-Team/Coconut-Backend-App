@@ -7,14 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-public class KoreaInvestmentTokenServiceTest {
+public class KISApiServiceTest {
 
     @Autowired
-    private KoreaInvestmentTokenService koreaInvestmentTokenService;
+    private KISApiService KISApiService;
 
     @Test
     public void testGetAccessToken() {
-        String token = koreaInvestmentTokenService.getAccessToken();
+        String token = KISApiService.getAccessToken();
         System.out.println("Access Token: " + token); // 토큰 출력
         assertNotNull(token, "Access token should not be null");
     }
