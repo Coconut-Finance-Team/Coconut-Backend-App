@@ -22,7 +22,7 @@ public class WebSocketKeyServiceTest {
         String apiUrl = apiConfig.getRestapiUrl();
 
         // webSocketKeyService의 메서드를 호출하여 키를 가져옵니다.
-        String webSocketKey = KISApiService.getWebSocketKey(apiUrl);
+        String webSocketKey = KISApiService.getWebSocketKey();
 
         // WebSocket 접근키 검증
         assertNotNull(webSocketKey, "WebSocket 접근키를 받아오지 못했습니다.");

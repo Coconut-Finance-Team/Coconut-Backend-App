@@ -62,7 +62,7 @@ public class KISApiService {
         }
     }
 
-    public String getWebSocketKey(String apiUrl) { // URL을 메서드 매개변수로 받음
+    public String getWebSocketKey() { // URL을 메서드 매개변수로 받음
         // 요청 헤더 설정
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -78,7 +78,7 @@ public class KISApiService {
 
         // RestTemplate 사용하여 POST 요청 보내기
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response = restTemplate.exchange(apiUrl + "/oauth2/Approval", HttpMethod.POST, entity,
+        ResponseEntity<String> response = restTemplate.exchange(apiConfig.getRestapiUrl() + "/oauth2/Approval", HttpMethod.POST, entity,
                 String.class);
 
         // 응답 JSON에서 approval_key 추출
