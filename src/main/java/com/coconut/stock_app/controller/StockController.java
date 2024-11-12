@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.coconut.stock_app.service.KISWebSocketClient;
-import com.coconut.stock_app.service.StockService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -13,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StockController {
     private final KISWebSocketClient kisWebSocketClient;
-    private final StockService stockService;
 
     @GetMapping("/subscribe")
     public String subscribeStock() {
