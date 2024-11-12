@@ -1,6 +1,9 @@
 package com.coconut.stock_app.service;
 
 import com.coconut.stock_app.config.ApiConfig;
+import com.coconut.stock_app.dto.StockChartDTO;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -26,10 +29,12 @@ public class KISApiService {
 
     private static final String APPROVAL_KEY_CACHE_KEY = "approval_key";
     private static final String BEARER_TOKEN_CACHE_KEY = "bearer_token";
+    private static final String REDIS_KEY_PREFIX = "stock:";
 
     private final ApiConfig apiConfig;
     private final RestTemplate restTemplate;
     private final RedisTemplate<String, String> redisTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private String accessToken;
     private Instant tokenExpiryTime;
@@ -132,6 +137,22 @@ public class KISApiService {
     public void invalidateApprovalKey() {
         redisTemplate.delete(APPROVAL_KEY_CACHE_KEY);
         System.out.println("[KISApiService] approval_key 캐시 삭제 완료");
+    }
+
+    public void saveToRedis(StockChartDTO stockChartDTO) {
+        try {
+            // 객체를 JSON으로 변환하여 Redis에 저장
+            String key = REDIS_KEY_PREFIX + stockChartDTO.getStockCode();
+            String json = objectMapper.writeValueAsString(stockChartDTO);
+            redisTemplate.opsForList().leftPush(key, json);
+
+            System.out.println("Redis에 저장 완료: " + key);
+        } catch (JsonProcessingException e) {
+            System.err.println("Redis 직렬화 오류: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Redis 저장 오류: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /**
