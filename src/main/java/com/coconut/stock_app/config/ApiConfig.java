@@ -13,5 +13,5 @@ public class ApiConfig {
     private String appKey;
     private String appSecret;
     private String restapiUrl;
-    private String websocketUrl;
+    private String stockPriceEndpoint;
 }
