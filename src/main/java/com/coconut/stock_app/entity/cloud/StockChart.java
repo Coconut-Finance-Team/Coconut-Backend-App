@@ -34,14 +34,25 @@ public class StockChart extends BaseEntity implements Serializable {
     private BigDecimal lowPrice;
 
     @Column(nullable = false)
-    private BigDecimal closePrice;
+    private BigDecimal currentPrice;
+
+    @Column
+    private String versusSign;
 
     @Column(nullable = false)
-    private Long volume;
+    private BigDecimal contingentVol;
+
+    @Column(nullable = false)
+    private BigDecimal accumulatedVol;
+
+    @Column(nullable = false)
+    private BigDecimal accumulatedAmount;
+
 
     @ManyToOne
     @JoinColumn(name = "stock_code", referencedColumnName = "stockCode", nullable = false)
     private Stock stock;
 
 }
+
 
