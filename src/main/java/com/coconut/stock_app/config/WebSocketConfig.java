@@ -11,6 +11,10 @@ import com.coconut.stock_app.service.ClientWebSocketHandler;
 public class WebSocketConfig implements WebSocketConfigurer {
     private final ClientWebSocketHandler clientWebSocketHandler;
 
+    public WebSocketConfig(ClientWebSocketHandler clientWebSocketHandler) {
+        this.clientWebSocketHandler = clientWebSocketHandler;
+    }
+
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(clientWebSocketHandler, "/ws/stock-index").setAllowedOrigins("*");

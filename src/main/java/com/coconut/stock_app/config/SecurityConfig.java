@@ -3,9 +3,11 @@ package com.coconut.stock_app.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
@@ -14,10 +16,9 @@ public class SecurityConfig {
                 .authorizeRequests(authorizeRequests ->
                         authorizeRequests
                                 .requestMatchers("/**").permitAll()
-                                .requestMatchers("/api/v1/stock/**").permitAll() // /api/v1/stock 하위 모든 경로 허용
                                 .anyRequest().authenticated()
                 );
-                //.csrf().disable(); // CSRF 비활성화 (필요한 경우)
+        //.csrf().disable(); // CSRF 비활성화 (필요한 경우)
 
         return http.build();
     }
