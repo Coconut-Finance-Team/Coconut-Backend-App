@@ -2,7 +2,13 @@ package com.coconut.stock_app.service;
 
 import com.coconut.stock_app.config.ApiConfig;
 import java.util.Map;
+
+import com.coconut.stock_app.dto.StockChartDTO;
+import com.coconut.stock_app.entity.cloud.StockChart;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -18,9 +24,29 @@ public class StockService {
     private final KISApiService KISApiService;
     private final RestTemplate restTemplate;
 
+    private final StringRedisTemplate redisTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final String REDIS_KEY_PREFIX = "stock:";
+
     public Map<String, Object> getKOSPIIndex() {
         String accessToken = KISApiService.getAccessToken();
         return getIndex("0001");  // 코스피 종목 코드
+    }
+
+    public void saveToRedis(StockChartDTO stockChartDTO) {
+        try {
+            // 객체를 JSON으로 변환하여 Redis에 저장
+            String key = REDIS_KEY_PREFIX + stockChartDTO.getStockCode();
+            String json = objectMapper.writeValueAsString(stockChartDTO);
+            redisTemplate.opsForList().leftPush(key, json);
+
+            System.out.println("Redis에 저장 완료: " + key);
+        } catch (JsonProcessingException e) {
+            System.err.println("Redis 직렬화 오류: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Redis 저장 오류: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public Map<String, Object> getKOSDAQIndex() {

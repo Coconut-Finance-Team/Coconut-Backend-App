@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Entity
 @Table(name = "stock_charts")
@@ -21,7 +22,7 @@ public class StockChart extends BaseEntity implements Serializable {
     private Long chartId;
 
     @Column(nullable = false)
-    private LocalDate tradeDate;
+    private LocalDateTime tradeDate;
 
     @Column(nullable = false)
     private BigDecimal openPrice;
@@ -41,5 +42,6 @@ public class StockChart extends BaseEntity implements Serializable {
     @ManyToOne
     @JoinColumn(name = "stock_code", referencedColumnName = "stockCode", nullable = false)
     private Stock stock;
+
 }
 

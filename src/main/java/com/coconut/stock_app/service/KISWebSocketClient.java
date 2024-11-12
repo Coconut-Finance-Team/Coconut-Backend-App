@@ -1,6 +1,7 @@
 package com.coconut.stock_app.service;
 
 import com.coconut.stock_app.config.ApiConfig;
+import com.coconut.stock_app.dto.StockChartDTO;
 import com.coconut.stock_app.entity.cloud.Stock;
 import com.coconut.stock_app.entity.cloud.StockChart;
 import com.coconut.stock_app.repository.cloud.StockChartRepository;
@@ -24,8 +25,7 @@ public class KISWebSocketClient {
     private WebSocketClient webSocketClient;
     private boolean isSubscribed = false;
 
-    private final StockChartRepository stockChartRepository;
-    private final StockRepository stockRepository;
+    private final StockService stockService;
     private final ApiConfig apiConfig;
     private final KISApiService kisApiService;
 
@@ -121,18 +121,16 @@ public class KISWebSocketClient {
         Long volume = Long.parseLong(fields[12]);
         LocalDateTime tradeTime = LocalDateTime.now();
 
-        Stock stock = stockRepository.findByStockCode(stockCode);
-
-        StockChart stockChart = StockChart.builder()
-                .stock(stock)
-                .tradeDate(tradeTime.toLocalDate())
+        StockChartDTO stockChartDTO = StockChartDTO.builder()
+                .stockCode(stockCode)
                 .openPrice(openPrice)
                 .highPrice(highPrice)
                 .lowPrice(lowPrice)
                 .closePrice(closePrice)
                 .volume(volume)
+                .time(tradeTime.toString())
                 .build();
 
-        stockChartRepository.save(stockChart);
+        stockService.saveToRedis(stockChartDTO);
     }
 }
