@@ -1,4 +1,4 @@
-package com.coconut.stock_app.service;
+package com.coconut.stock_app.websocket;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -28,13 +28,13 @@ public class ClientWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         sessions.put(session.getId(), session);
-        System.out.println("[ClientWebSocketHandler] 클라이언트 연결: " + session.getId());
+        System.out.println("클라이언트 연결: " + session.getId());
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         sessions.remove(session.getId());
-        System.out.println("[ClientWebSocketHandler] 클라이언트 연결 종료: " + session.getId());
+        System.out.println("클라이언트 연결 종료: " + session.getId());
     }
 
     // 메시지 전송
@@ -43,7 +43,7 @@ public class ClientWebSocketHandler extends TextWebSocketHandler {
             try {
                 session.sendMessage(new TextMessage(jsonMessage));
             } catch (IOException e) {
-                System.err.println("[ClientWebSocketHandler] 메시지 전송 실패: " + e.getMessage());
+                System.err.println("메시지 전송 실패: " + e.getMessage());
             }
         });
     }
@@ -54,15 +54,15 @@ public class ClientWebSocketHandler extends TextWebSocketHandler {
         data.put("kospi", redisTemplate.opsForValue().get("kospi"));
         data.put("kosdaq", redisTemplate.opsForValue().get("kosdaq"));
 
-        System.out.println("[ClientWebSocketHandler] 전송 데이터: " + data);
+        System.out.println("전송 데이터: " + data);
 
         for (WebSocketSession session : sessions.values()) {
             try {
                 String json = new ObjectMapper().writeValueAsString(data);
                 session.sendMessage(new TextMessage(json));
-                System.out.println("[ClientWebSocketHandler] 데이터 전송 성공: " + json);
+                System.out.println("데이터 전송 성공: " + json);
             } catch (IOException e) {
-                System.err.println("[ClientWebSocketHandler] 데이터 전송 실패: " + e.getMessage());
+                System.err.println("데이터 전송 실패: " + e.getMessage());
             }
         }
     }
@@ -70,6 +70,6 @@ public class ClientWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception)
             throws Exception {
-        System.err.println("[ClientWebSocketHandler] WebSocket 오류: " + exception.getMessage());
+        System.err.println("WebSocket 오류: " + exception.getMessage());
     }
 }
