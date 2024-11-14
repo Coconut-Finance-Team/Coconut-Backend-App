@@ -1,7 +1,7 @@
-package com.coconut.stock_app.service;
+package com.coconut.stock_app.websocket;
 
 import com.coconut.stock_app.config.ApiConfig;
-import com.coconut.stock_app.dto.StockChartDTO;
+import com.coconut.stock_app.dto.stock.StockChartDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -45,13 +45,13 @@ public class KISApiService {
     public String getApprovalKey() {
         String cachedKey = redisTemplate.opsForValue().get(APPROVAL_KEY_CACHE_KEY);
         if (cachedKey != null) {
-            System.out.println("[KISApiManager] Redis 캐싱된 approval_key 사용: " + cachedKey);
+            System.out.println("Redis 캐싱된 approval_key 사용: " + cachedKey);
             return cachedKey;
         }
 
         String newKey = fetchApprovalKey();
         redisTemplate.opsForValue().set(APPROVAL_KEY_CACHE_KEY, newKey, 1, TimeUnit.MINUTES);
-        System.out.println("[KISApiManager] 새로운 approval_key 발급 및 Redis 저장: " + newKey);
+        System.out.println("새로운 approval_key 발급 및 Redis 저장: " + newKey);
         return newKey;
     }
 
@@ -61,13 +61,13 @@ public class KISApiService {
     public String getBearerToken() {
         String cachedToken = redisTemplate.opsForValue().get(BEARER_TOKEN_CACHE_KEY);
         if (cachedToken != null) {
-            System.out.println("[KISApiManager] Redis 캐싱된 bearer_token 사용: " + cachedToken);
+            System.out.println("Redis 캐싱된 bearer_token 사용: " + cachedToken);
             return cachedToken;
         }
 
         String newToken = fetchBearerToken();
         redisTemplate.opsForValue().set(BEARER_TOKEN_CACHE_KEY, newToken, 1, TimeUnit.HOURS);
-        System.out.println("[KISApiManager] 새로운 bearer_token 발급 및 Redis 저장: " + newToken);
+        System.out.println("새로운 bearer_token 발급 및 Redis 저장: " + newToken);
         return newToken;
     }
 
@@ -76,7 +76,7 @@ public class KISApiService {
      */
     public String getAccessToken() {
         if (accessToken != null && Instant.now().isBefore(tokenExpiryTime)) {
-            System.out.println("[KISApiManager] 캐싱된 access_token 사용: " + accessToken);
+            System.out.println("캐싱된 access_token 사용: " + accessToken);
             return accessToken;
         }
 
@@ -96,10 +96,10 @@ public class KISApiService {
 
             accessToken = newAccessToken;
             tokenExpiryTime = Instant.now().plusSeconds(3600); // 토큰 유효 시간 1시간
-            System.out.println("[KISApiManager] 새로운 access_token 발급 성공: " + accessToken);
+            System.out.println("새로운 access_token 발급 성공: " + accessToken);
             return accessToken;
         } catch (Exception e) {
-            System.err.println("[KISApiManager] access_token 발급 중 오류: " + e.getMessage());
+            System.err.println("access_token 발급 중 오류: " + e.getMessage());
             throw new RuntimeException("Access token 발급 요청 실패", e);
         }
     }
@@ -108,7 +108,7 @@ public class KISApiService {
      * approval_key 발급 로직
      */
     private String fetchApprovalKey() {
-        System.out.println("[KISApiManager] approval_key 발급 요청 중...");
+        System.out.println("approval_key 발급 요청 중...");
         String url = apiConfig.getRestapiUrl() + "/oauth2/Approval";
 
         HttpHeaders headers = createHeaders();
@@ -123,10 +123,10 @@ public class KISApiService {
                 throw new RuntimeException("approval_key 발급 실패: 응답에 approval_key 없음");
             }
 
-            System.out.println("[KISApiManager] approval_key 발급 성공: " + approvalKey);
+            System.out.println("approval_key 발급 성공: " + approvalKey);
             return approvalKey;
         } catch (Exception e) {
-            System.err.println("[KISApiManager] approval_key 발급 중 오류: " + e.getMessage());
+            System.err.println("approval_key 발급 중 오류: " + e.getMessage());
             throw new RuntimeException("approval_key 발급 요청 실패", e);
         }
     }
@@ -159,7 +159,7 @@ public class KISApiService {
      * bearer_token 발급 로직
      */
     private String fetchBearerToken() {
-        System.out.println("[KISApiManager] bearer_token 발급 요청 중...");
+        System.out.println("bearer_token 발급 요청 중...");
         String url = apiConfig.getRestapiUrl() + "/oauth2/tokenP";
 
         HttpHeaders headers = createHeaders();
@@ -174,10 +174,10 @@ public class KISApiService {
                 throw new RuntimeException("bearer_token 발급 실패: 응답에 access_token 없음");
             }
 
-            System.out.println("[KISApiManager] bearer_token 발급 성공: " + bearerToken);
+            System.out.println("bearer_token 발급 성공: " + bearerToken);
             return bearerToken;
         } catch (Exception e) {
-            System.err.println("[KISApiManager] bearer_token 발급 중 오류: " + e.getMessage());
+            System.err.println("bearer_token 발급 중 오류: " + e.getMessage());
             throw new RuntimeException("bearer_token 발급 요청 실패", e);
         }
     }

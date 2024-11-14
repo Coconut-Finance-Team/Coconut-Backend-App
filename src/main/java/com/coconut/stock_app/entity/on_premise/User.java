@@ -1,13 +1,11 @@
 package com.coconut.stock_app.entity.on_premise;
 
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.List;
 import com.coconut.stock_app.entity.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.io.Serializable;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -16,12 +14,16 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class User extends BaseEntity implements Serializable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
     @Column(unique = true, nullable = false, length = 36)
     private String userUuid;
+
+    @Column(unique = true, nullable = false, length = 50)
+    private String id; // 사용자 고유 ID 추가
 
     @Column(nullable = false, length = 100)
     private String username;
@@ -47,11 +49,11 @@ public class User extends BaseEntity implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UsersAccountStatusEnum accountStatus;
+    private UserAccountStatus accountStatus;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UsersRoleEnum role;
+    private UserRole role;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Account> accounts;
@@ -59,16 +61,8 @@ public class User extends BaseEntity implements Serializable {
     @OneToOne
     @JoinColumn(name = "primary_account_id", referencedColumnName = "accountId")
     private Account primaryAccount;
-}
 
-
-
-enum UsersRoleEnum {
-    ADMIN,
-    USER
-}
-enum UsersAccountStatusEnum {
-    ACTIVE,
-    INACTIVE,
-    SUSPENDED
+    public User(String email) {
+        this.email = email;
+    }
 }

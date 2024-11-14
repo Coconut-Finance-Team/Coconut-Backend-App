@@ -2,6 +2,7 @@ package com.coconut.stock_app.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.coconut.stock_app.websocket.KISApiService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

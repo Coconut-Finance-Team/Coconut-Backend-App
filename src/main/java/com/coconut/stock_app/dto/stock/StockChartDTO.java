@@ -1,4 +1,4 @@
-package com.coconut.stock_app.dto;
+package com.coconut.stock_app.dto.stock;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -6,7 +6,6 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -25,7 +24,7 @@ public class Stock extends BaseEntity implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private StocksStockStatusEnum stockStatus;
+    private StockStatus stockStatus;
 
     @Column(nullable = false, length = 100)
     private String stockName;
@@ -40,7 +39,3 @@ public class Stock extends BaseEntity implements Serializable {
 }
 
 
-enum StocksStockStatusEnum {
-    ACTIVE,
-    DELISTED
-}

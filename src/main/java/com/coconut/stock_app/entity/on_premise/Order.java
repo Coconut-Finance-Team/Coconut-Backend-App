@@ -38,7 +38,7 @@ public class Order extends BaseEntity implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private OrdersOrderTypeEnum orderType;
+    private OrderType orderType;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -58,7 +58,3 @@ public class Order extends BaseEntity implements Serializable {
     private List<Trade> sellTrade;
 }
 
-enum OrdersOrderTypeEnum {
-    BUY,
-    SELL
-}

@@ -6,7 +6,6 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -24,7 +23,7 @@ public class Account extends BaseEntity implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private AccountsAccountStatusEnum accountStatus;
+    private AccountStatus accountStatus;
 
     private String accountAlias;
 
@@ -54,7 +53,3 @@ public class Account extends BaseEntity implements Serializable {
     private List<Order> orders;
 }
 
-enum AccountsAccountStatusEnum {
-    OPEN,
-    CLOSED
-}

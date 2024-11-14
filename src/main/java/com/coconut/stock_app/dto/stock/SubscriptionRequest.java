@@ -1,4 +1,4 @@
-package com.coconut.stock_app.dto;
+package com.coconut.stock_app.dto.stock;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
