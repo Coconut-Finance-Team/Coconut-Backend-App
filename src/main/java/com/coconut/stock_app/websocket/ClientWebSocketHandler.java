@@ -2,6 +2,7 @@ package com.coconut.stock_app.websocket;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -22,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ClientWebSocketHandler extends TextWebSocketHandler {
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
     private final ConcurrentHashMap<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
 
     @Override
@@ -50,9 +51,9 @@ public class ClientWebSocketHandler extends TextWebSocketHandler {
 
     @Scheduled(fixedRate = 1000) // 1초마다 업데이트
     public void pushStockIndices() {
-        Map<String, Object> data = new HashMap<>();
-        data.put("kospi", redisTemplate.opsForValue().get("kospi"));
-        data.put("kosdaq", redisTemplate.opsForValue().get("kosdaq"));
+        Map<String, List<String>> data = new HashMap<>();
+        data.put("kospi", redisTemplate.opsForList().range("kospi",0,-1));
+        data.put("kosdaq", redisTemplate.opsForList().range("kosdaq",0, -1));
 
         System.out.println("전송 데이터: " + data);
 
