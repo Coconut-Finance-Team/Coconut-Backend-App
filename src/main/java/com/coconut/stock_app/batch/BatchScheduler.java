@@ -11,7 +11,7 @@ public class BatchScheduler {
     private final KISWebSocketClient kisWebSocketClient;
 
     // 5분마다 배치 작업 실행
-    @Scheduled(fixedRate = 100000)
+    @Scheduled(fixedRate = 60000)
     public void runBatch() {
         System.out.println("배치 작업 시작...");
         kisWebSocketClient.saveStockDataToMySQL();
