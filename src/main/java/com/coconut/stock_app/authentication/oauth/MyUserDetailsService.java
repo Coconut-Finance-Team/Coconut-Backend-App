@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+// 일반 로그인
 @Service
 @RequiredArgsConstructor
 public class MyUserDetailsService implements UserDetailsService {
@@ -16,12 +17,12 @@ public class MyUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String id) throws UsernameNotFoundException {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + id));
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
 
         return new org.springframework.security.core.userdetails.User(
-                user.getId(),
+                user.getEmail(),
                 user.getPassword() != null ? user.getPassword() : "", // 비밀번호가 없는 경우 빈 문자열
                 new ArrayList<>() // 권한 리스트 (예: "ROLE_USER")
         );

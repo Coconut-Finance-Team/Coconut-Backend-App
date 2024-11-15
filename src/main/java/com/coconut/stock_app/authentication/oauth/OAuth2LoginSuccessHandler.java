@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -19,6 +20,9 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -33,10 +37,10 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         if (userOptional.isPresent()) {
             // 기존 사용자: JWT 생성 및 메인 페이지로 리디렉션
             String jwt = jwtUtil.generateToken(email);
-            response.sendRedirect("http://localhost:3000/?token=" + jwt);
+            response.sendRedirect(frontendUrl + "/?token=" + jwt);
         } else {
             // 신규 사용자: 회원가입 페이지로 리디렉션
-            response.sendRedirect("http://localhost:3000/signin");
+            response.sendRedirect(frontendUrl + "/signin");
         }
     }
 }

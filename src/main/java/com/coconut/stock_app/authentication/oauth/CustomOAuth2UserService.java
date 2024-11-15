@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.coconut.stock_app.repository.on_premise.UserRepository;
 import lombok.RequiredArgsConstructor;
 
+// OAuth 로그인
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {

@@ -1,5 +1,6 @@
 package com.coconut.stock_app.websocket;
 
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -12,6 +13,7 @@ import java.util.List;
 import com.coconut.stock_app.dto.stock.StockChartDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.concurrent.CompletableFuture;
 import org.json.JSONObject;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
