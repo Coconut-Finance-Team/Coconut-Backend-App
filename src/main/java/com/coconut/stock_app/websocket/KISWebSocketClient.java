@@ -7,8 +7,6 @@ import com.coconut.stock_app.repository.cloud.StockRepository;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -38,7 +36,7 @@ public class KISWebSocketClient {
     private final RedisTemplate<String, String> redisTemplate;
     private final KISApiService kisApiService;
 
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final StockRepository stockRepository;
     private final StockChartRepository stockChartRepository;
@@ -51,11 +49,11 @@ public class KISWebSocketClient {
     public void initializeWebSocketConnection() {
         CompletableFuture.runAsync(() -> {
             try {
-                System.out.println("Initializing WebSocket connection...");
+                System.out.println("[StockWebSocketService] Initializing WebSocket connection...");
                 connectToWebSocket();
-                System.out.println("WebSocket 연결 작업 완료.");
+                System.out.println("[StockWebSocketService] WebSocket 연결 작업 완료.");
             } catch (Exception e) {
-                System.err.println("WebSocket 초기화 중 오류 발생: " + e.getMessage());
+                System.err.println("[StockWebSocketService] WebSocket 초기화 중 오류 발생: " + e.getMessage());
                 e.printStackTrace();
             }
         });
@@ -97,19 +95,19 @@ public class KISWebSocketClient {
 
                 @Override
                 public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-                    System.err.println("WebSocket 오류 발생: " + exception.getMessage());
+                    System.err.println("[StockWebSocketService] WebSocket 오류 발생: " + exception.getMessage());
                     reconnectWithBackoff();
                 }
 
                 @Override
                 public void afterConnectionClosed(WebSocketSession session, org.springframework.web.socket.CloseStatus status) throws Exception {
-                    System.out.println("WebSocket 연결 종료: " + status);
+                    System.out.println("[StockWebSocketService] WebSocket 연결 종료: " + status);
                     reconnectWithBackoff();
                 }
             }, wsUrl);
 
         } catch (Exception e) {
-            System.err.println("WebSocket 연결 실패: " + e.getMessage());
+            System.err.println("[StockWebSocketService] WebSocket 연결 실패: " + e.getMessage());
             reconnectWithBackoff();
         }
     }
@@ -124,7 +122,7 @@ public class KISWebSocketClient {
                 Arrays.asList("H0STCNT0", "005930")
         );
 
-        for(List<String> row : list) {
+        for (List<String> row : list) {
             JSONObject request = new JSONObject();
 
             JSONObject header = new JSONObject();
@@ -158,19 +156,19 @@ public class KISWebSocketClient {
                 isSubscribedKOSDAQ = true;
             }
             session.sendMessage(new TextMessage("{\"tr_id\":\"PONG\"}"));
-            System.out.println("PONG 메시지 전송 완료");
+            System.out.println("[StockWebSocketService] PONG 메시지 전송 완료");
         } catch (Exception e) {
-            System.err.println("PINGPONG 처리 중 오류: " + e.getMessage());
+            System.err.println("[StockWebSocketService] PINGPONG 처리 중 오류: " + e.getMessage());
         }
     }
 
     private void handleSubscribeSuccess(String payload) {
         if (payload.contains("\"tr_key\":\"0001\"")) {
             isSubscribedKOSPI = true;
-            System.out.println("KOSPI 구독 성공");
+            System.out.println("[DEBUG] KOSPI 구독 성공");
         } else if (payload.contains("\"tr_key\":\"0002\"")) {
             isSubscribedKOSDAQ = true;
-            System.out.println("KOSDAQ 구독 성공");
+            System.out.println("[DEBUG] KOSDAQ 구독 성공");
         }
     }
 
@@ -178,7 +176,7 @@ public class KISWebSocketClient {
         String approvalKey = kisApiService.getApprovalKey();
 
         if (session == null || !session.isOpen()) {
-            System.err.println("WebSocket 세션이 열려있지 않습니다. 구독 요청 실패");
+            System.err.println("[StockWebSocketService] WebSocket 세션이 열려있지 않습니다. 구독 요청 실패");
             kisApiService.invalidateApprovalKey();
             return;
         }
@@ -188,14 +186,14 @@ public class KISWebSocketClient {
                 approvalKey, trKey);
 
         session.sendMessage(new TextMessage(subscribeMessage));
-        System.out.println("구독 요청 전송: tr_key=" + trKey);
+        System.out.println("[StockWebSocketService] 구독 요청 전송: tr_key=" + trKey);
     }
 
     private void handleReceivedMessage(String payload) {
         try {
             String[] parts = payload.split("\\|");
             if (parts.length < 4) {
-                System.err.println("수신 데이터가 잘못되었습니다: " + payload);
+                System.err.println("[StockWebSocketService] 수신 데이터가 잘못되었습니다: " + payload);
                 return;
             }
 
@@ -206,18 +204,16 @@ public class KISWebSocketClient {
                 processIndexData("kospi", "KOSPI", values);
             } else if ("0002".equals(values[0])) {
                 processIndexData("kosdaq", "KOSDAQ", values);
-            }
-            else {
-                processStockData("stock-"+values[0],values);
+            } else {
+                processStockData("stock-" + values[0], values);
             }
         } catch (Exception e) {
-            System.err.println("수신 메시지 처리 중 오류: " + e.getMessage());
+            System.err.println("[StockWebSocketService] 수신 메시지 처리 중 오류: " + e.getMessage());
         }
     }
 
-    private void  processStockData(String redisKey, String[] values){
-        try{
-
+    private void processStockData(String redisKey, String[] values) {
+        try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HHmmss");
             LocalTime time = LocalTime.parse(values[1], formatter);
 
@@ -234,6 +230,18 @@ public class KISWebSocketClient {
                     .build();
 
             String json = objectMapper.writeValueAsString(stockChartDTO);
+
+            System.out.println("stock");
+            // Redis 키가 존재하지 않거나 타입이 List가 아닐 경우 초기화
+            DataType type = redisTemplate.type(redisKey);
+            if (type == DataType.NONE) {
+                System.out.println("[StockWebSocketService] 키가 없으므로 새로운 List 생성: " + redisKey);
+            } else if (type != DataType.LIST) {
+                System.out.println("[StockWebSocketService] 잘못된 타입 발견, 키 삭제 후 재생성: " + redisKey);
+                redisTemplate.delete(redisKey);
+            }
+
+            // 데이터 저장
             redisTemplate.opsForList().leftPush(redisKey, json);
         }  catch (JsonProcessingException e) {
             System.err.println("Redis 직렬화 오류: " + e.getMessage());
@@ -275,8 +283,10 @@ public class KISWebSocketClient {
 
     public void saveStockDataToMySQL() {
         List<StockChart> stockCharts = new ArrayList<>();
+
         // 모든 키 가져오기
         for (String key : redisTemplate.keys("stock-*")) {
+            System.out.println("bbb");
             // 키에서 StockCode 추출
             String stockCode = key.substring(6);
 
@@ -297,6 +307,7 @@ public class KISWebSocketClient {
             // Redis에서 데이터 가져오기
             List<String> stockDataList = redisTemplate.opsForList().range(key, 0, -1);
             if (stockDataList != null) {
+
                 for (String jsonData : stockDataList) {
                     try {
                         StockChartDTO dto = objectMapper.readValue(jsonData, StockChartDTO.class);
