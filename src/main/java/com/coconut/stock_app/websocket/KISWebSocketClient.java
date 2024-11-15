@@ -1,5 +1,9 @@
 package com.coconut.stock_app.websocket;
 
+import com.coconut.stock_app.entity.cloud.Stock;
+import com.coconut.stock_app.entity.cloud.StockChart;
+import com.coconut.stock_app.repository.cloud.StockChartRepository;
+import com.coconut.stock_app.repository.cloud.StockRepository;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -7,6 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -15,6 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.CompletableFuture;
 import org.json.JSONObject;
+import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
@@ -32,7 +38,10 @@ public class KISWebSocketClient {
     private final RedisTemplate<String, String> redisTemplate;
     private final KISApiService kisApiService;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
+    private final StockRepository stockRepository;
+    private final StockChartRepository stockChartRepository;
 
     private WebSocketSession session;
     private volatile boolean isSubscribedKOSPI = false; // 동기화를 위한 volatile
@@ -265,5 +274,50 @@ public class KISWebSocketClient {
         System.err.println("WebSocket 재연결 실패: 최대 시도 초과");
     }
 
+    public void saveStockDataToMySQL() {
+        List<StockChart> stockCharts = new ArrayList<>();
+        // 모든 키 가져오기
+        for (String key : redisTemplate.keys("stock-*")) {
+            // 키에서 StockCode 추출
+            String stockCode = key.substring(6);
 
+            // 주식 코드로 Stock 엔티티 조회
+            Stock stock = stockRepository.findByStockCode(stockCode);
+            if (stock == null) {
+                System.err.println("해당 StockCode를 찾을 수 없습니다: " + stockCode);
+                continue;
+            }
+
+            // Redis 키 타입 확인
+            DataType type = redisTemplate.type(key);
+            if (type != DataType.LIST) {
+                System.out.println("잘못된 키 타입 발견: " + key + ", 타입: " + type);
+                redisTemplate.delete(key); // 잘못된 타입의 키 삭제
+                continue;
+            }
+            // Redis에서 데이터 가져오기
+            List<String> stockDataList = redisTemplate.opsForList().range(key, 0, -1);
+            if (stockDataList != null) {
+                for (String jsonData : stockDataList) {
+                    try {
+                        StockChartDTO dto = objectMapper.readValue(jsonData, StockChartDTO.class);
+                        StockChart stockChart = dto.toEntity(stock);
+                        stockCharts.add(stockChart);
+                    } catch (JsonProcessingException e) {
+                        System.err.println("JSON 변환 오류: " + e.getMessage());
+                    }
+                }
+                // Redis에서 해당 키 삭제
+                redisTemplate.delete(key);
+            }
+        }
+
+        // MySQL에 배치 저장
+        if (!stockCharts.isEmpty()) {
+            stockChartRepository.saveAll(stockCharts);
+            System.out.println("MySQL에 저장된 주식 데이터 수: " + stockCharts.size());
+        } else {
+            System.out.println("저장할 데이터가 없습니다.");
+        }
+    }
 }

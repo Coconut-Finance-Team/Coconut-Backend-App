@@ -20,9 +20,6 @@ public class StockChart extends BaseEntity implements Serializable {
     private Long chartId;
 
     @Column(nullable = false)
-    private LocalDateTime tradeDate;
-
-    @Column(nullable = false)
     private BigDecimal openPrice;
 
     @Column(nullable = false)
