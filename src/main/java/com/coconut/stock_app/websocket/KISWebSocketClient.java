@@ -38,7 +38,7 @@ public class KISWebSocketClient {
     private final RedisTemplate<String, String> redisTemplate;
     private final KISApiService kisApiService;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     private final StockRepository stockRepository;
     private final StockChartRepository stockChartRepository;
@@ -285,11 +285,8 @@ public class KISWebSocketClient {
 
     public void saveStockDataToMySQL() {
         List<StockChart> stockCharts = new ArrayList<>();
-        System.out.println("aaaa");
-
         // 모든 키 가져오기
         for (String key : redisTemplate.keys("stock-*")) {
-            System.out.println("bbb");
             // 키에서 StockCode 추출
             String stockCode = key.substring(6);
 
@@ -307,11 +304,9 @@ public class KISWebSocketClient {
                 redisTemplate.delete(key); // 잘못된 타입의 키 삭제
                 continue;
             }
-            System.out.println("-----------"+key);
             // Redis에서 데이터 가져오기
             List<String> stockDataList = redisTemplate.opsForList().range(key, 0, -1);
             if (stockDataList != null) {
-                System.out.println("aa"+key);
                 for (String jsonData : stockDataList) {
                     try {
                         StockChartDTO dto = objectMapper.readValue(jsonData, StockChartDTO.class);
@@ -322,7 +317,6 @@ public class KISWebSocketClient {
                     }
                 }
                 // Redis에서 해당 키 삭제
-                System.out.println("cccc");
                 redisTemplate.delete(key);
             }
         }

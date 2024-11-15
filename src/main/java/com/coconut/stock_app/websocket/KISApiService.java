@@ -34,7 +34,7 @@ public class KISApiService {
     private final ApiConfig apiConfig;
     private final RestTemplate restTemplate;
     private final RedisTemplate<String, String> redisTemplate;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     private String accessToken;
     private Instant tokenExpiryTime;
@@ -139,21 +139,6 @@ public class KISApiService {
         System.out.println("[KISApiService] approval_key 캐시 삭제 완료");
     }
 
-    public void saveToRedis(StockChartDTO stockChartDTO) {
-        try {
-            // 객체를 JSON으로 변환하여 Redis에 저장
-            String key = REDIS_KEY_PREFIX + stockChartDTO.getStockCode();
-            String json = objectMapper.writeValueAsString(stockChartDTO);
-            redisTemplate.opsForList().leftPush(key, json);
-
-            System.out.println("Redis에 저장 완료: " + key);
-        } catch (JsonProcessingException e) {
-            System.err.println("Redis 직렬화 오류: " + e.getMessage());
-        } catch (Exception e) {
-            System.err.println("Redis 저장 오류: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
 
     /**
      * bearer_token 발급 로직
