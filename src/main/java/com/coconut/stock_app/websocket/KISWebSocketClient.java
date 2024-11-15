@@ -38,19 +38,19 @@ public class KISWebSocketClient {
     private volatile boolean isSubscribedKOSPI = false; // 동기화를 위한 volatile
     private volatile boolean isSubscribedKOSDAQ = false;
 
-//    @PostConstruct
-//    public void initializeWebSocketConnection() {
-//        CompletableFuture.runAsync(() -> {
-//            try {
-//                System.out.println("Initializing WebSocket connection...");
-//                connectToWebSocket();
-//                System.out.println("WebSocket 연결 작업 완료.");
-//            } catch (Exception e) {
-//                System.err.println("WebSocket 초기화 중 오류 발생: " + e.getMessage());
-//                e.printStackTrace();
-//            }
-//        });
-//    }
+    @PostConstruct
+    public void initializeWebSocketConnection() {
+        CompletableFuture.runAsync(() -> {
+            try {
+                System.out.println("Initializing WebSocket connection...");
+                connectToWebSocket();
+                System.out.println("WebSocket 연결 작업 완료.");
+            } catch (Exception e) {
+                System.err.println("WebSocket 초기화 중 오류 발생: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
+    }
 
     public void connectToWebSocket() {
         WebSocketClient client = new StandardWebSocketClient();

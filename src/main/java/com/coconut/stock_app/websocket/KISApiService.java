@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 @Service
 @RequiredArgsConstructor
 public class KISApiService {
-
     private static final String APPROVAL_KEY_CACHE_KEY = "approval_key";
     private static final String BEARER_TOKEN_CACHE_KEY = "bearer_token";
     private static final String REDIS_KEY_PREFIX = "stock:";
@@ -80,7 +79,7 @@ public class KISApiService {
             return accessToken;
         }
 
-        String url = apiConfig.getRestapiUrl() + "/oauth2/tokenP";
+        String url = apiConfig.getAccessTokenEndpoint();
 
         HttpHeaders headers = createHeaders();
         HttpEntity<Map<String, String>> request = createRequestEntity();
@@ -109,7 +108,7 @@ public class KISApiService {
      */
     private String fetchApprovalKey() {
         System.out.println("approval_key 발급 요청 중...");
-        String url = apiConfig.getRestapiUrl() + "/oauth2/Approval";
+        String url = apiConfig.getApprovalKeyEndpoint();
 
         HttpHeaders headers = createHeaders();
         HttpEntity<Map<String, String>> request = createRequestEntity();
@@ -160,7 +159,7 @@ public class KISApiService {
      */
     private String fetchBearerToken() {
         System.out.println("bearer_token 발급 요청 중...");
-        String url = apiConfig.getRestapiUrl() + "/oauth2/tokenP";
+        String url = apiConfig.getAccessTokenEndpoint();
 
         HttpHeaders headers = createHeaders();
         HttpEntity<Map<String, String>> request = createRequestEntity();

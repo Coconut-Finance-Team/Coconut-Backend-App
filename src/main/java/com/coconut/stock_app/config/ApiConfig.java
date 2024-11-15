@@ -13,5 +13,8 @@ public class ApiConfig {
     private String appKey;
     private String appSecret;
     private String restapiUrl;
+    private String approvalKeyEndpoint;
+    private String accessTokenEndpoint;
     private String stockPriceEndpoint;
+    private String stockIndexEndpoint;
 }

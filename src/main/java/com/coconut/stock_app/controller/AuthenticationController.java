@@ -42,8 +42,6 @@ public class AuthenticationController {
         // 인증 성공: JWT 생성
         final String jwt = jwtUtil.generateToken(loginDto.getId());
 
-        return ResponseEntity
-                .ok()
-                .body(new JwtResultDto(jwt, LOGIN_SUCCESS_MESSAGE));
+        return ResponseEntity.ok().body(new JwtResultDto(jwt, LOGIN_SUCCESS_MESSAGE));
     }
 }
