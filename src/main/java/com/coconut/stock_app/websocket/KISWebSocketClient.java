@@ -223,7 +223,6 @@ public class KISWebSocketClient {
 
             StockChartDTO stockChartDTO = StockChartDTO.builder()
                     .stockCode(values[0])
-                    .time(LocalDateTime.of(LocalDate.now(), time).toString())
                     .currentPrice(new BigDecimal(values[2]))
                     .versusSign(values[3])
                     .openPrice(new BigDecimal(values[7]))
