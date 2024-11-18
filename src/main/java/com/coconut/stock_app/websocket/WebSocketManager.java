@@ -1,7 +1,7 @@
 package com.coconut.stock_app.websocket;
 
+import com.coconut.stock_app.config.ApiConfig;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -23,17 +23,14 @@ public class WebSocketManager {
     private final StockDataHandler stockDataHandler;
     private final KISKeyService kisKeyService;
     private final ThreadPoolTaskExecutor webSocketExecutor;
+    private final ApiConfig apiConfig;
 
-    @Value("${websocket.url:ws://ops.koreainvestment.com:21000}")
-    private String websocketUrl;
-
-    @Value("${websocket.retry.max-attempts:5}")
-    private int maxRetryAttempts;
-
-    @Value("${websocket.retry.initial-delay:1000}")
-    private long initialDelay;
+    private final String websocketUrl = apiConfig.getWebsocketUrl();
+    private final int maxRetryAttempts = apiConfig.getWebsocketRetryMaxAttempts();
+    private final long initialDelay = apiConfig.getWebsocketRetryInitialDelay();
 
     private WebSocketSession session;
+    // 동기화된 상태 관리
     private final AtomicBoolean isConnected = new AtomicBoolean(false);
 
     private static final String[][] SUBSCRIPTIONS = {{"H0UPCNT0", "0001", "KOSPI"},
@@ -41,22 +38,9 @@ public class WebSocketManager {
             {"H0STCNT0", "066570", "LG전자"}, {"H0STCNT0", "000660", "SK하이닉스"}};
 
     @PostConstruct
+    // 비동기로 연결 시도 -> 연결 작업이 메인 스레드를 차단하지 않음
     public void initialize() {
         webSocketExecutor.execute(this::connectWithRetry);
-    }
-
-    private void connectWithRetry() {
-        int retryCount = 0;
-        while (!isConnected.get() && retryCount < maxRetryAttempts) {
-            try {
-                WebSocketClient client = new StandardWebSocketClient();
-                client.execute(createWebSocketHandler(), websocketUrl);
-                return;
-            } catch (Exception e) {
-                retryCount++;
-                sleep(calculateBackoff(retryCount));
-            }
-        }
     }
 
     private WebSocketHandler createWebSocketHandler() {
@@ -87,13 +71,6 @@ public class WebSocketManager {
         };
     }
 
-    private void handleDisconnect(String reason) {
-        log.warn("WebSocket 연결 종료: {}", reason);
-        isConnected.set(false);
-        session = null;
-        webSocketExecutor.execute(this::connectWithRetry);
-    }
-
     private void sendSubscriptions() {
         try {
             String approvalKey = kisKeyService.getApprovalKey();
@@ -104,7 +81,7 @@ public class WebSocketManager {
                         approvalKey, subscription[0], subscription[1]);
                 session.sendMessage(new TextMessage(message));
                 log.info("구독 요청 전송: {}", subscription[2]);
-                Thread.sleep(100); // 각 요청 사이에 100ms 지연 추가
+                Thread.sleep(100); // 요청 간 간격 조절
             }
         } catch (Exception e) {
             log.error("구독 요청 실패", e);
@@ -116,17 +93,40 @@ public class WebSocketManager {
         webSocketExecutor.execute(() -> {
             while (isConnected.get()) {
                 try {
+                    // 5초마다 연결 상태 체크
                     if (session == null || !session.isOpen()) {
                         handleDisconnect("Connection check failed");
                         break;
                     }
-                    Thread.sleep(5000); // 5초마다 연결 체크
+                    Thread.sleep(5000);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     break;
                 }
             }
         });
+    }
+
+    private void handleDisconnect(String reason) {
+        log.warn("WebSocket 연결 종료: {}", reason);
+        isConnected.set(false); // 상태 초기화
+        session = null;
+        webSocketExecutor.execute(this::connectWithRetry); // 재연결 시도
+    }
+
+    private void connectWithRetry() {
+        int retryCount = 0;
+        // 연결 시도
+        while (!isConnected.get() && retryCount < maxRetryAttempts) {
+            try {
+                WebSocketClient client = new StandardWebSocketClient();
+                client.execute(createWebSocketHandler(), websocketUrl);
+                return;
+            } catch (Exception e) {
+                retryCount++;
+                sleep(calculateBackoff(retryCount)); // 지수 백오프로 다시 시도
+            }
+        }
     }
 
     private long calculateBackoff(int retryCount) {
