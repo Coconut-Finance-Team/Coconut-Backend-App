@@ -46,7 +46,7 @@ public class ClientWebSocketHandler extends TextWebSocketHandler {
         });
     }
 
-    @Scheduled(fixedRate = 1000) // 1초마다 Redis 데이터 푸시
+    //@Scheduled(fixedRate = 1000) // 1초마다 Redis 데이터 푸시
     public void pushStockIndices() {
         try {
             // Redis에서 데이터 한 번만 읽기

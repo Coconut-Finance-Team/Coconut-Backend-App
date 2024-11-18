@@ -46,7 +46,7 @@ public class DataStorageService {
         }
     }
 
-    @Scheduled(fixedRate = 60000) // 1분마다 실행
+    //@Scheduled(fixedRate = 60000) // 1분마다 실행
     @Transactional
     public void transferToDatabase() {
         try {
