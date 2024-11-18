@@ -22,7 +22,7 @@ public class OwnedStock extends BaseEntity implements Serializable {
     private String stockCode;
 
     @Column(nullable = false)
-    private int quantity;
+    private Long quantity;
 
     @Column(nullable = false)
     private BigDecimal totalPurchasePrice;
@@ -30,4 +30,23 @@ public class OwnedStock extends BaseEntity implements Serializable {
     @ManyToOne
     @JoinColumn(name = "account_id", referencedColumnName = "accountId")
     private Account account;
+
+    public void buyStock(Long bQuantity, BigDecimal bPrice) {
+        this.quantity += bQuantity;
+        this.totalPurchasePrice.add(bPrice.multiply(new BigDecimal(bQuantity)));
+    }
+
+    public void sellStock(Long sQuantity) {
+        if (sQuantity > this.quantity) {
+            throw new IllegalArgumentException("보유한 주식 수량이 부족합니다.");
+        }
+
+
+        BigDecimal averagePricePerShare = this.totalPurchasePrice.divide(new BigDecimal(this.quantity), BigDecimal.ROUND_HALF_UP);
+
+        BigDecimal amountToDeduct = averagePricePerShare.multiply(new BigDecimal(sQuantity));
+        this.totalPurchasePrice = this.totalPurchasePrice.subtract(amountToDeduct);
+
+        this.quantity -= sQuantity;
+    }
 }
