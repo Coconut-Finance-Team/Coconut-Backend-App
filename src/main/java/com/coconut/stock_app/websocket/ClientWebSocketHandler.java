@@ -1,7 +1,6 @@
 package com.coconut.stock_app.websocket;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,16 +14,13 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 
-/*
- * WebSocket을 통해 클라이언트와의 실시간 통신을 관리하는 클래스
- * 내부 Redis에 저장된 데이터를 클라이언트에 전송하는 역할
-*/
 @Component
 @RequiredArgsConstructor
 public class ClientWebSocketHandler extends TextWebSocketHandler {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final ConcurrentHashMap<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
+    private final ObjectMapper objectMapper = new ObjectMapper(); // ObjectMapper 재사용
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
@@ -38,39 +34,40 @@ public class ClientWebSocketHandler extends TextWebSocketHandler {
         System.out.println("클라이언트 연결 종료: " + session.getId());
     }
 
-    // 메시지 전송
     public void broadcastMessage(String jsonMessage) {
         sessions.values().forEach(session -> {
-            try {
-                session.sendMessage(new TextMessage(jsonMessage));
-            } catch (IOException e) {
-                System.err.println("메시지 전송 실패: " + e.getMessage());
+            if (session.isOpen()) { // 세션 상태 확인
+                try {
+                    session.sendMessage(new TextMessage(jsonMessage));
+                } catch (IOException e) {
+                    System.err.println("메시지 전송 실패: " + e.getMessage());
+                }
             }
         });
     }
 
-    @Scheduled(fixedRate = 1000) // 1초마다 업데이트
+    @Scheduled(fixedRate = 1000) // 1초마다 Redis 데이터 푸시
     public void pushStockIndices() {
-        Map<String, List<String>> data = new HashMap<>();
-        data.put("kospi", redisTemplate.opsForList().range("kospi",0,-1));
-        data.put("kosdaq", redisTemplate.opsForList().range("kosdaq",0, -1));
+        try {
+            // Redis에서 데이터 한 번만 읽기
+            Map<String, List<String>> data = Map.of(
+                    "kospi", redisTemplate.opsForList().range("kospi", 0, -1),
+                    "kosdaq", redisTemplate.opsForList().range("kosdaq", 0, -1)
+            );
 
-        System.out.println("전송 데이터: " + data);
+            // JSON 변환
+            String json = objectMapper.writeValueAsString(data);
 
-        for (WebSocketSession session : sessions.values()) {
-            try {
-                String json = new ObjectMapper().writeValueAsString(data);
-                session.sendMessage(new TextMessage(json));
-                System.out.println("데이터 전송 성공: " + json);
-            } catch (IOException e) {
-                System.err.println("데이터 전송 실패: " + e.getMessage());
-            }
+            // 모든 클라이언트에 전송
+            broadcastMessage(json);
+            System.out.println("데이터 전송 성공: " + json);
+        } catch (Exception e) {
+            System.err.println("Redis 데이터 전송 중 오류: " + e.getMessage());
         }
     }
 
     @Override
-    public void handleTransportError(WebSocketSession session, Throwable exception)
-            throws Exception {
+    public void handleTransportError(WebSocketSession session, Throwable exception) {
         System.err.println("WebSocket 오류: " + exception.getMessage());
     }
 }
