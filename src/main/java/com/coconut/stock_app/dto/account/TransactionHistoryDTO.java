@@ -14,5 +14,6 @@ public class TransactionHistoryDTO {
     private String date;       // 날짜 (형식: MM.dd)
     private String name;       // 종목 or 이름
     private String status;     // 판매, 구매, 이체입금 등
-    private Long amount;       // 거래 금액
+    private Long amount;    // 거래 금액
+    private Long quantity;
 }
