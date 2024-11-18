@@ -1,6 +1,5 @@
 package com.coconut.stock_app.config;
 
-import com.coconut.stock_app.dto.stock.StockIndexDto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -40,8 +39,6 @@ public class RedisConfig {
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return template;
     }
-
-
 
     @Bean
     public ObjectMapper objectMapper() {
