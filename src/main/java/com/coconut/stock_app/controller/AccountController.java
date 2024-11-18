@@ -32,8 +32,15 @@ public class AccountController {
     }
 
     @GetMapping("/{uuid}/account/transactions/txn")
-    ResponseEntity<AccountTransactionResponseDTO> getTransactionsTxn(@PathVariable String uuid) {
-        return null;
+    ResponseEntity<List<TransactionHistoryDTO>> getTransactionsTxn(@PathVariable String uuid) {
+        List<TransactionHistoryDTO> transactionHistoryDTOS = accountService.getTransactionsTxn(uuid);
+        return ResponseEntity.ok(transactionHistoryDTOS);
+    }
+
+    @GetMapping("/{uuid}/account/transactions/deposits-withdrawals")
+    ResponseEntity<List<TransactionHistoryDTO>> getTransactionsDepositsAndWithdrawals(@PathVariable String uuid) {
+        List<TransactionHistoryDTO> transactionHistoryDTOS = accountService.getTransactionsDepositAndWithdrawals(uuid);
+        return ResponseEntity.ok(transactionHistoryDTOS);
     }
 
     @GetMapping("/{uuid}/account/transactions/trade/detail/{trade_id}")
@@ -41,10 +48,7 @@ public class AccountController {
         return null;
     }
 
-    @GetMapping("/{uuid}/account/transactions/deposits-withdrawals")
-    ResponseEntity<AccountTransactionResponseDTO> getTransactionsDepositsAndWithdrawals(@PathVariable String uuid) {
-        return null;
-    }
+
 
     @GetMapping("/{uuid}/account/transactions/deposits-withdrawals/detail/{transaction_id}")
     ResponseEntity<TransactionAmountDTO> getTransactionsDepositsAndWithdrawalsDetail(@PathVariable String uuid, @PathVariable(name = "transaction_id") Long transactionId) {

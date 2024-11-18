@@ -2,6 +2,7 @@ package com.coconut.stock_app.service.impl;
 
 import com.coconut.stock_app.dto.account.AccountTransactionResponseDTO;
 import com.coconut.stock_app.dto.account.AssetDTO;
+import com.coconut.stock_app.dto.account.TransactionDetailDTO;
 import com.coconut.stock_app.dto.account.TransactionHistoryDTO;
 import com.coconut.stock_app.entity.on_premise.Account;
 import com.coconut.stock_app.entity.on_premise.OwnedStock;
@@ -31,7 +32,6 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final TradeRepository tradeRepository;
     private final TransactionRepository transactionRepository;
-    private final OwnedStockRepository ownedStockRepository;
 
     public AssetDTO getAsset(String uuid){
         Account account = accountRepository.findByAccountUuid(uuid)
@@ -56,16 +56,11 @@ public class AccountServiceImpl implements AccountService {
     }
 
     public List<TransactionHistoryDTO> getTransactionsAll(String uuid){
-        List<Trade> trades = tradeRepository.findAllTradesByAccountUuid(uuid);
-        List<Transaction> transactions = transactionRepository.findAllTransactionsByAccountUuid(uuid);
 
-        List<TransactionHistoryDTO> tradeHistory = trades.stream()
-                .map(trade -> mapTradeToTransactionHistoryDTO(trade, uuid))
-                .collect(Collectors.toList());
 
-        List<TransactionHistoryDTO> transactionHistory = transactions.stream()
-                .map(this::mapTransactionToTransactionHistoryDTO)
-                .collect(Collectors.toList());
+        List<TransactionHistoryDTO> tradeHistory = getTransactionsTxn(uuid);
+
+        List<TransactionHistoryDTO> transactionHistory = getTransactionsDepositAndWithdrawals(uuid);
 
         List<TransactionHistoryDTO> combinedHistory = Stream.concat(tradeHistory.stream(), transactionHistory.stream())
                 .sorted(Comparator.comparing(TransactionHistoryDTO::getDate).reversed())
@@ -73,6 +68,29 @@ public class AccountServiceImpl implements AccountService {
 
 
         return combinedHistory;
+    }
+
+    public List<TransactionHistoryDTO> getTransactionsTxn(String uuid){
+        List<Trade> trades = tradeRepository.findAllTradesByAccountUuid(uuid);
+
+        List<TransactionHistoryDTO> tradeHistory = trades.stream()
+                .map(trade -> mapTradeToTransactionHistoryDTO(trade, uuid))
+                .collect(Collectors.toList());
+        return tradeHistory;
+    }
+
+    public List<TransactionHistoryDTO> getTransactionsDepositAndWithdrawals(String uuid){
+        List<Transaction> transactions = transactionRepository.findAllTransactionsByAccountUuid(uuid);
+
+        List<TransactionHistoryDTO> transactionHistory = transactions.stream()
+                .map(this::mapTransactionToTransactionHistoryDTO)
+                .collect(Collectors.toList());
+
+        return transactionHistory;
+    }
+
+    public TransactionDetailDTO getTransactionDetail(String uuid, Long tradeId){
+        return null;
     }
 
     private TransactionHistoryDTO mapTradeToTransactionHistoryDTO(Trade trade, String accountUuid) {

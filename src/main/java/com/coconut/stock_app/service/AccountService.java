@@ -9,4 +9,6 @@ import java.util.List;
 public interface AccountService {
     AssetDTO getAsset(String uuid);
     List<TransactionHistoryDTO> getTransactionsAll(String uuid);
+    List<TransactionHistoryDTO> getTransactionsTxn(String uuid);
+    List<TransactionHistoryDTO> getTransactionsDepositAndWithdrawals(String uuid);
 }
