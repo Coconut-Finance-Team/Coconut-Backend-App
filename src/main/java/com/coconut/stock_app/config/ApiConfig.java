@@ -1,9 +1,9 @@
 package com.coconut.stock_app.config;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -17,4 +17,7 @@ public class ApiConfig {
     private String accessTokenEndpoint;
     private String stockPriceEndpoint;
     private String stockIndexEndpoint;
+    private String websocketUrl;
+    private int websocketRetryMaxAttempts;
+    private int websocketRetryInitialDelay;
 }
