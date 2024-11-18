@@ -119,7 +119,9 @@ public class KISWebSocketClient {
         List<List<String>> list = Arrays.asList(
                 Arrays.asList("H0UPCNT0", "0001"),
                 Arrays.asList("H0UPCNT0", "0002"),
-                Arrays.asList("H0STCNT0", "005930")
+                Arrays.asList("H0STCNT0", "005930"),
+                Arrays.asList("H0STCNT0", "000660"),
+                Arrays.asList("H0STCNT0", "066570")
         );
 
         for (List<String> row : list) {

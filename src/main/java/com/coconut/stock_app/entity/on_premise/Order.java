@@ -24,14 +24,11 @@ public class Order extends BaseEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long orderId;
 
-    @Column(nullable = false)
-    private LocalDate orderDate;
-
     @Column(nullable = false, length = 20)
     private String stockCode;
 
     @Column(nullable = false)
-    private int orderQuantity;
+    private Long orderQuantity;
 
     @Column(nullable = false)
     private BigDecimal orderPrice;
@@ -39,12 +36,6 @@ public class Order extends BaseEntity implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderType orderType;
-
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
 
 
     @ManyToOne
@@ -56,5 +47,14 @@ public class Order extends BaseEntity implements Serializable {
 
     @OneToMany(mappedBy = "sellOrder", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Trade> sellTrade;
+
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ProfitLoss profitLoss;
+
+    public void orderExecution(Long quantity){
+        if(quantity <= this.orderQuantity){
+            this.orderQuantity -= quantity;
+        }
+    }
 }
 

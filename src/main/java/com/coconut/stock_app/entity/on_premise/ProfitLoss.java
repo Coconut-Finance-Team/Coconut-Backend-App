@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Entity
 @Table(name = "profit_loss")
@@ -36,9 +37,25 @@ public class ProfitLoss extends BaseEntity implements Serializable {
     private BigDecimal fee;
 
     @Column(nullable = false)
-    private int saleQuantity;
+    private Long saleQuantity;
 
     @ManyToOne
     @JoinColumn(name = "account_id", referencedColumnName = "accountId", nullable = false)
     private Account account;
+
+    @OneToOne
+    @JoinColumn(name = "order_id", referencedColumnName = "orderId", nullable = false, unique = true)
+    private Order order;
+
+    public void calculateProfitRate() {
+        if (this.purchasePricePerShare != null && this.salePricePerShare != null) {
+            BigDecimal profit = this.salePricePerShare.subtract(this.purchasePricePerShare);
+            this.profitRate = profit.divide(this.purchasePricePerShare, 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
+        }
+    }
+
+    public void increaseSaleQuantity(Long quantity) {
+        this.saleQuantity+=quantity;
+    }
 }
