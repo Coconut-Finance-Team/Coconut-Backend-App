@@ -19,6 +19,7 @@ public class OrderHistoryDTO {
     private String status;
     private String type;
     private Long quantity;
+    private Long id;
     private BigDecimal price;
     private BigDecimal totalPrice;
 }

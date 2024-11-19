@@ -64,8 +64,9 @@ public class AccountController {
     }
 
     @GetMapping("/{uuid}/account/orders/detail/{order_id}")
-    ResponseEntity<TradeDetailDTO> getAccountOrderDetail(@PathVariable String uuid, @PathVariable(name = "order_id") Long order_id) {
-        return null;
+    ResponseEntity<OrderHistoryDTO> getAccountOrderDetail(@PathVariable String uuid, @PathVariable(name = "order_id") Long order_id) {
+        OrderHistoryDTO orderHistoryDTO = accountService.getOrderDetail(order_id);
+        return ResponseEntity.ok(orderHistoryDTO);
     }
 
     @GetMapping("/{uuid}/account/sales-profit")

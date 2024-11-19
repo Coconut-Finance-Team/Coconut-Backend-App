@@ -54,5 +54,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findAllOrdersByAccountId(@Param("accountUuid") String accountUuid);
 
 
+    Optional<Order> findByOrderId(Long orderId);
 
 }

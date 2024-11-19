@@ -12,4 +12,5 @@ public interface AccountService {
     TradeDetailDTO getTradeDetail(Long tradeId);
     TransactionAmountDTO getTransactionsDepositsAndWithdrawalsDetail(Long transactionId);
     List<OrderHistoryDTO> getAccountOrder(String uuid);
+    OrderHistoryDTO getOrderDetail(Long orderId);
 }

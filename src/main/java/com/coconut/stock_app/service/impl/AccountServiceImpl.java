@@ -119,6 +119,13 @@ public class AccountServiceImpl implements AccountService {
         return orderHistoryDTOS;
     }
 
+    public OrderHistoryDTO getOrderDetail(Long orderId){
+        Order order = orderRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_ORDER));
+
+        return mapOrderToOrderHistoryDTO(order);
+    }
+
     private TransactionHistoryDTO mapTradeToTransactionHistoryDTO(Trade trade, String accountUuid) {
         String status;
 
@@ -179,6 +186,7 @@ public class AccountServiceImpl implements AccountService {
                 .orderTime(order.getCreatedAt())
                 .status(status)
                 .type("지정가")
+                .id(order.getOrderId())
                 .quantity(order.getInitQuantity())
                 .price(order.getOrderPrice())
                 .totalPrice(order.getOrderPrice().multiply(new BigDecimal(order.getInitQuantity())))
