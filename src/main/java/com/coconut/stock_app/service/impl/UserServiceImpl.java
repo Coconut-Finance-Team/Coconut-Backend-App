@@ -61,8 +61,18 @@ public class UserServiceImpl implements UserService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .phone(user.getPhone())
+                .gender(user.getGender())
+                .job(user.getJob())
                 .investmentStyle(user.getInvestmentStyle())
+                .birthdate(user.getBirthdate() != null ? user.getBirthdate().toString() : null) // LocalDate를 String으로 변환
                 .primaryAccountId(user.getPrimaryAccount() != null ? user.getPrimaryAccount().getAccountId() : null)
                 .build();
+    }
+
+    @Override
+    public User verifyUser(String username, String phone, String socialSecurityNumber) {
+        // 이름, 전화번호, 주민등록번호로 사용자 조회
+        return userRepository.findByUsernameAndPhoneAndSocialSecurityNumber(username, phone, socialSecurityNumber)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보가 일치하지 않습니다."));
     }
 }

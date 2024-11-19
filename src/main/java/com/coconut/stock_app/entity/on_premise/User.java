@@ -23,7 +23,7 @@ public class User extends BaseEntity implements Serializable {
     private String userUuid;
 
     @Column(unique = true, nullable = false, length = 50)
-    private String id; // 사용자 계정 ID 추가
+    private String id; // 사용자 계정 ID
 
     @Column(nullable = false, length = 100)
     private String username;

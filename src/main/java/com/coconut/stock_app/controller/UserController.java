@@ -35,10 +35,8 @@ public class UserController {
      */
     @GetMapping("/me")
     public ResponseEntity<UserInfoDto> getLoggedInUser() {
-        // 인증된 사용자 정보 가져오기
         User authenticatedUser = authenticationService.getAuthenticatedUser();
 
-        // 사용자 정보 DTO로 변환
         UserInfoDto userInfo = userService.getUserInfo(authenticatedUser);
         return ResponseEntity.ok(userInfo);
     }
