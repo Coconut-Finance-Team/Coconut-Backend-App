@@ -41,7 +41,7 @@ public class StockWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    @Scheduled(fixedRate = 1000)
+    //@Scheduled(fixedRate = 1000)
     public void pushStockData() {
         for (Map.Entry<String, WebSocketSession> entry : stockSessions.entrySet()) {
             String stockCode = entry.getKey();

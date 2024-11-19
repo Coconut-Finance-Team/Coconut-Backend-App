@@ -34,7 +34,7 @@ public class IndexWebSocketHandler extends TextWebSocketHandler {
         System.out.println("클라이언트 연결 종료: " + session.getId());
     }
 
-    @Scheduled(fixedRate = 1000) // 1초마다 Redis 데이터 푸시
+    //@Scheduled(fixedRate = 1000) // 1초마다 Redis 데이터 푸시
     public void pushStockIndices() {
         try {
             Map<String, List<String>> data = Map.of(

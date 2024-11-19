@@ -20,7 +20,7 @@ public class StockInitializer {
 
     private final StockRepository stockRepository;
 
-    @PostConstruct
+    //@PostConstruct
     public void initializeStocks() {
         List<Stock> initialStocks = Arrays.asList(
                 Stock.builder()

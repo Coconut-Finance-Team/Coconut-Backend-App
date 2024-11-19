@@ -44,6 +44,16 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 """)
     Page<Order> findBuyOrdersForSell(@Param("sellPrice") BigDecimal sellPrice, @Param("accountId") String accountId, Pageable pageable);
 
+    @Query("""
+        SELECT o
+        FROM Order o
+        JOIN FETCH o.account a
+        WHERE a.accountUuid = :accountUuid
+        ORDER BY o.createdAt DESC
+    """)
+    List<Order> findAllOrdersByAccountId(@Param("accountUuid") String accountUuid);
 
+
+    Optional<Order> findByOrderId(Long orderId);
 
 }
