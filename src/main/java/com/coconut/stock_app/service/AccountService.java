@@ -1,8 +1,6 @@
 package com.coconut.stock_app.service;
 
-import com.coconut.stock_app.dto.account.AccountTransactionResponseDTO;
-import com.coconut.stock_app.dto.account.AssetDTO;
-import com.coconut.stock_app.dto.account.TransactionHistoryDTO;
+import com.coconut.stock_app.dto.account.*;
 
 import java.util.List;
 
@@ -11,4 +9,7 @@ public interface AccountService {
     List<TransactionHistoryDTO> getTransactionsAll(String uuid);
     List<TransactionHistoryDTO> getTransactionsTxn(String uuid);
     List<TransactionHistoryDTO> getTransactionsDepositAndWithdrawals(String uuid);
+    TradeDetailDTO getTradeDetail(Long tradeId);
+    TransactionAmountDTO getTransactionsDepositsAndWithdrawalsDetail(Long transactionId);
+    List<OrderHistoryDTO> getAccountOrder(String uuid);
 }

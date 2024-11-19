@@ -110,6 +110,7 @@ public class TradeServiceImpl implements TradeService {
         Order newOrder = Order.builder()
                 .stockCode(order.getStockCode())
                 .orderQuantity(order.getOrderQuantity())
+                .initQuantity(order.getOrderQuantity())
                 .orderPrice(order.getOrderPrice())
                 .orderType(orderType)
                 .account(account)

@@ -16,4 +16,5 @@ public class TransactionHistoryDTO {
     private String status;     // 판매, 구매, 이체입금 등
     private Long amount;    // 거래 금액
     private Long quantity;
+    private Long id;
 }

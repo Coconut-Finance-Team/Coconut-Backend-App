@@ -7,6 +7,7 @@ import lombok.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "transactions")
@@ -19,6 +20,9 @@ public class Transaction extends BaseEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long transactionId;
 
+    @Column(nullable = false)
+    private String name;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TransactionType transactionType;
@@ -27,7 +31,7 @@ public class Transaction extends BaseEntity implements Serializable {
     private BigDecimal amount;
 
     @Column(nullable = false)
-    private LocalDate transactionDate;
+    private LocalDateTime transactionDate;
 
     private String description;
 

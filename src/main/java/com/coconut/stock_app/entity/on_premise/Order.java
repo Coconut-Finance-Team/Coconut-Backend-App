@@ -28,6 +28,9 @@ public class Order extends BaseEntity implements Serializable {
     private String stockCode;
 
     @Column(nullable = false)
+    private Long initQuantity;
+
+    @Column(nullable = false)
     private Long orderQuantity;
 
     @Column(nullable = false)

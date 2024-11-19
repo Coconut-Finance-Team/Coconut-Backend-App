@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TradeRepository extends JpaRepository<Trade, Long> {
@@ -33,6 +34,7 @@ public interface TradeRepository extends JpaRepository<Trade, Long> {
            OR s.account.accountUuid = :accountUuid 
         ORDER BY t.createdAt DESC
     """)
-    //@EntityGraph(attributePaths = {"account"})
     List<Trade> findAllTradesByAccountUuid(@Param("accountUuid") String accountUuid);
+
+    Optional<Trade> findById(Long id);
 }

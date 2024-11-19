@@ -44,39 +44,42 @@ public class AccountController {
     }
 
     @GetMapping("/{uuid}/account/transactions/trade/detail/{trade_id}")
-    ResponseEntity<TransactionDetailDTO> getTransactionsTradeDetail(@PathVariable String uuid, @PathVariable(name = "trade_id") Long tradeId) {
-        return null;
+    ResponseEntity<TradeDetailDTO> getTransactionsTradeDetail(@PathVariable String uuid, @PathVariable(name = "trade_id") Long tradeId) {
+        TradeDetailDTO tradeDetailDTO = accountService.getTradeDetail(tradeId);
+        return ResponseEntity.ok(tradeDetailDTO);
     }
 
 
 
     @GetMapping("/{uuid}/account/transactions/deposits-withdrawals/detail/{transaction_id}")
     ResponseEntity<TransactionAmountDTO> getTransactionsDepositsAndWithdrawalsDetail(@PathVariable String uuid, @PathVariable(name = "transaction_id") Long transactionId) {
-        return null;
+        TransactionAmountDTO transactionAmountDTO = accountService.getTransactionsDepositsAndWithdrawalsDetail(transactionId);
+        return ResponseEntity.ok(transactionAmountDTO);
     }
 
     @GetMapping("/{uuid}/account/orders")
-    ResponseEntity<AccountTransactionResponseDTO> getAccountOrder(@PathVariable String uuid) {
-        return null;
+    ResponseEntity<List<OrderHistoryDTO>> getAccountOrder(@PathVariable String uuid) {
+        List<OrderHistoryDTO> orderHistoryDTOS = accountService.getAccountOrder(uuid);
+        return ResponseEntity.ok(orderHistoryDTOS);
     }
 
     @GetMapping("/{uuid}/account/orders/detail/{order_id}")
-    ResponseEntity<TransactionDetailDTO> getAccountOrderDetail(@PathVariable String uuid, @PathVariable(name = "order_id") Long order_id) {
+    ResponseEntity<TradeDetailDTO> getAccountOrderDetail(@PathVariable String uuid, @PathVariable(name = "order_id") Long order_id) {
         return null;
     }
 
     @GetMapping("/{uuid}/account/sales-profit")
-    ResponseEntity<TransactionDetailDTO> getAccountSalesProfit(@PathVariable String uuid) {
+    ResponseEntity<TradeDetailDTO> getAccountSalesProfit(@PathVariable String uuid) {
         return null;
     }
 
     @GetMapping("/{uuid}/account/sales-profit/detail/{sales_id}")
-    ResponseEntity<TransactionDetailDTO> getAccountSalesProfitDetail(@PathVariable String uuid, @PathVariable(name = "sales_id") Long salesId) {
+    ResponseEntity<TradeDetailDTO> getAccountSalesProfitDetail(@PathVariable String uuid, @PathVariable(name = "sales_id") Long salesId) {
         return null;
     }
 
     @GetMapping("/{uuid}/account")
-    ResponseEntity<TransactionDetailDTO> getAccount(@PathVariable String uuid) {
+    ResponseEntity<TradeDetailDTO> getAccount(@PathVariable String uuid) {
         return null;
     }
 

@@ -12,6 +12,8 @@ public enum ErrorCode {
     NOT_EXIST_USER(HttpStatus.NOT_FOUND,"유저를 찾을 수 없습니다."),
     NOT_EXIST_STOCK(HttpStatus.NOT_FOUND,"종목을 찾을 수 없습니다."),
     NOT_EXIST_ACCOUNT(HttpStatus.NOT_FOUND,"계좌를 찾을 수 없습니다."),
+    NOT_EXIST_TRADE(HttpStatus.NOT_FOUND,"체결된 거래를 찾을 수 없습니다."),
+    NOT_EXIST_TRANSACTION(HttpStatus.NOT_FOUND,"입출금 기록을 찾을 수 없습니다."),
     NOT_EXIST_OWNED_STOCK(HttpStatus.NOT_FOUND,"보유 종목을 찾을 수 없습니다."),
     FORBIDDEN(HttpStatus.FORBIDDEN,"권한이 없습니다"),
     UNAUTHORIZED_USER(HttpStatus.UNAUTHORIZED,"인증이 필요한 유저입니다."),
