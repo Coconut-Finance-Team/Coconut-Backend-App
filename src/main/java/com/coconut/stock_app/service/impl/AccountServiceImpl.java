@@ -133,6 +133,16 @@ public class AccountServiceImpl implements AccountService {
 
         return profitLossDTOS;
     }
+
+    public ProfitLossDTO getAccountSalesProfitDetail(Long sales_id){
+        ProfitLoss profitLoss = profitLossRepository.findById(sales_id)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_PROFIT_LOSS));
+
+        ProfitLossDTO profitLossDTO = mapProfitLossToProfitLossDTO(profitLoss);
+
+        return profitLossDTO;
+    }
+
     private TransactionHistoryDTO mapTradeToTransactionHistoryDTO(Trade trade, String accountUuid) {
         String status;
 
