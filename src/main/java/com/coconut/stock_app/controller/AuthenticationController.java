@@ -28,12 +28,10 @@ public class AuthenticationController {
     @PostMapping("/authenticate")
     public ResponseEntity<JwtResultDto> login(@RequestBody LoginDto loginDto) {
         try {
-            // 인증 시도
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginDto.getId(), loginDto.getPassword())
             );
         } catch (AuthenticationException e) {
-            // 인증 실패 시
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body(new JwtResultDto(null, LOGIN_FAILURE_MESSAGE));

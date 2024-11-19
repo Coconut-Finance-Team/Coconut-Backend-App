@@ -25,12 +25,10 @@ public class WebSocketManager {
     private final ThreadPoolTaskExecutor webSocketExecutor;
     private final ApiConfig apiConfig;
 
-    private final String websocketUrl = apiConfig.getWebsocketUrl();
-    private final int maxRetryAttempts = apiConfig.getWebsocketRetryMaxAttempts();
-    private final long initialDelay = apiConfig.getWebsocketRetryInitialDelay();
-
+    private String websocketUrl;
+    private int maxRetryAttempts;
+    private long initialDelay;
     private WebSocketSession session;
-    // 동기화된 상태 관리
     private final AtomicBoolean isConnected = new AtomicBoolean(false);
 
     private static final String[][] SUBSCRIPTIONS = {{"H0UPCNT0", "0001", "KOSPI"},
@@ -38,8 +36,15 @@ public class WebSocketManager {
             {"H0STCNT0", "066570", "LG전자"}, {"H0STCNT0", "000660", "SK하이닉스"}};
 
     @PostConstruct
+    public void init() {
+        this.websocketUrl = apiConfig.getWebsocketUrl();
+        this.maxRetryAttempts = apiConfig.getWebsocketRetryMaxAttempts();
+        this.initialDelay = apiConfig.getWebsocketRetryInitialDelay();
+        initialize();
+    }
+
     // 비동기로 연결 시도 -> 연결 작업이 메인 스레드를 차단하지 않음
-    public void initialize() {
+    private void initialize() {
         webSocketExecutor.execute(this::connectWithRetry);
     }
 
