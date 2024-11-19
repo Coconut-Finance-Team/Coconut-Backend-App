@@ -17,7 +17,9 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class Account extends BaseEntity implements Serializable {
+
     @Id
+    @Column(nullable = false, unique = true, length = 12) // 고유 계좌번호
     private String accountId;
 
     @Column(unique = true, nullable = false, length = 36)
@@ -34,8 +36,6 @@ public class Account extends BaseEntity implements Serializable {
     private String accountPassword;
 
     private String accountPurpose;
-
-    private BigDecimal withdrawableAmount;
 
     private BigDecimal deposit = BigDecimal.ZERO;
 

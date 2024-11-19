@@ -11,4 +11,6 @@ import java.util.Optional;
 public interface AccountRepository extends JpaRepository<Account, Long> {
     @EntityGraph(attributePaths = {"ownedStocks"})
     Optional<Account> findByAccountUuid(String accountUuid);
+
+    boolean existsByAccountId(String accountId);
 }
