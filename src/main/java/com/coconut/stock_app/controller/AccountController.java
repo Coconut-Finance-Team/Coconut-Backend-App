@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("api/v1")
@@ -86,13 +87,6 @@ public class AccountController {
         AccountDTO accountDTO = accountService.getAccount(uuid);
         return ResponseEntity.ok(accountDTO);
     }
-
-
-
-
-
-
-
 
 
 }

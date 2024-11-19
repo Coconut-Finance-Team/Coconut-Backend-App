@@ -16,11 +16,11 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class ClientWebSocketHandler extends TextWebSocketHandler {
+public class IndexWebSocketHandler extends TextWebSocketHandler {
 
     private final RedisTemplate<String, String> redisTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private final ConcurrentHashMap<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
-    private final ObjectMapper objectMapper = new ObjectMapper(); // ObjectMapper 재사용
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
@@ -34,22 +34,9 @@ public class ClientWebSocketHandler extends TextWebSocketHandler {
         System.out.println("클라이언트 연결 종료: " + session.getId());
     }
 
-    public void broadcastMessage(String jsonMessage) {
-        sessions.values().forEach(session -> {
-            if (session.isOpen()) { // 세션 상태 확인
-                try {
-                    session.sendMessage(new TextMessage(jsonMessage));
-                } catch (IOException e) {
-                    System.err.println("메시지 전송 실패: " + e.getMessage());
-                }
-            }
-        });
-    }
-
-    //@Scheduled(fixedRate = 1000) // 1초마다 Redis 데이터 푸시
+    @Scheduled(fixedRate = 1000) // 1초마다 Redis 데이터 푸시
     public void pushStockIndices() {
         try {
-            // Redis에서 데이터 한 번만 읽기
             Map<String, List<String>> data = Map.of(
                     "kospi", redisTemplate.opsForList().range("kospi", 0, -1),
                     "kosdaq", redisTemplate.opsForList().range("kosdaq", 0, -1)
@@ -64,6 +51,18 @@ public class ClientWebSocketHandler extends TextWebSocketHandler {
         } catch (Exception e) {
             System.err.println("Redis 데이터 전송 중 오류: " + e.getMessage());
         }
+    }
+
+    public void broadcastMessage(String jsonMessage) {
+        sessions.values().forEach(session -> {
+            if (session.isOpen()) { // 세션 상태 확인
+                try {
+                    session.sendMessage(new TextMessage(jsonMessage));
+                } catch (IOException e) {
+                    System.err.println("메시지 전송 실패: " + e.getMessage());
+                }
+            }
+        });
     }
 
     @Override
