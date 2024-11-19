@@ -70,8 +70,9 @@ public class AccountController {
     }
 
     @GetMapping("/{uuid}/account/sales-profit")
-    ResponseEntity<TradeDetailDTO> getAccountSalesProfit(@PathVariable String uuid) {
-        return null;
+    ResponseEntity<List<ProfitLossDTO>> getAccountSalesProfit(@PathVariable String uuid) {
+        List<ProfitLossDTO> profitLossDTOS = accountService.getAccountSalesProfit(uuid);
+        return ResponseEntity.ok(profitLossDTOS);
     }
 
     @GetMapping("/{uuid}/account/sales-profit/detail/{sales_id}")

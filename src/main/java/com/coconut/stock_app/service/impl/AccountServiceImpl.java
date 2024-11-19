@@ -6,10 +6,7 @@ import com.coconut.stock_app.entity.on_premise.*;
 import com.coconut.stock_app.exception.CustomException;
 import com.coconut.stock_app.exception.ErrorCode;
 import com.coconut.stock_app.repository.cloud.StockRepository;
-import com.coconut.stock_app.repository.on_premise.AccountRepository;
-import com.coconut.stock_app.repository.on_premise.OrderRepository;
-import com.coconut.stock_app.repository.on_premise.TradeRepository;
-import com.coconut.stock_app.repository.on_premise.TransactionRepository;
+import com.coconut.stock_app.repository.on_premise.*;
 import com.coconut.stock_app.service.AccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,6 +26,7 @@ public class AccountServiceImpl implements AccountService {
     private final TransactionRepository transactionRepository;
     private final StockRepository stockRepository;
     private final OrderRepository orderRepository;
+    private final ProfitLossRepository profitLossRepository;
 
     public AssetDTO getAsset(String uuid){
         Account account = accountRepository.findByAccountUuid(uuid)
@@ -126,6 +124,15 @@ public class AccountServiceImpl implements AccountService {
         return mapOrderToOrderHistoryDTO(order);
     }
 
+    public List<ProfitLossDTO> getAccountSalesProfit(String uuid){
+        List<ProfitLoss> profitLosses = profitLossRepository.findByAllProfitLossByAccountUuid(uuid);
+
+        List<ProfitLossDTO> profitLossDTOS = profitLosses.stream()
+                .map(this::mapProfitLossToProfitLossDTO)
+                .collect(Collectors.toList());
+
+        return profitLossDTOS;
+    }
     private TransactionHistoryDTO mapTradeToTransactionHistoryDTO(Trade trade, String accountUuid) {
         String status;
 
@@ -192,5 +199,18 @@ public class AccountServiceImpl implements AccountService {
                 .totalPrice(order.getOrderPrice().multiply(new BigDecimal(order.getInitQuantity())))
                 .build();
 
+    }
+
+    private ProfitLossDTO mapProfitLossToProfitLossDTO(ProfitLoss profitLoss) {
+        return ProfitLossDTO.builder()
+                .id(profitLoss.getProfitLossId())
+                .stockCode(profitLoss.getStockCode())
+                .stockName(profitLoss.getStockName())
+                .purchasePricePerShare(profitLoss.getPurchasePricePerShare())
+                .salePricePerShare(profitLoss.getSalePricePerShare())
+                .profitRate(profitLoss.getProfitRate())
+                .fee(profitLoss.getFee())
+                .saleQuantity(profitLoss.getSaleQuantity())
+                .build();
     }
 }

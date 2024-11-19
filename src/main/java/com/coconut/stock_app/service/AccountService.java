@@ -1,6 +1,7 @@
 package com.coconut.stock_app.service;
 
 import com.coconut.stock_app.dto.account.*;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -13,4 +14,5 @@ public interface AccountService {
     TransactionAmountDTO getTransactionsDepositsAndWithdrawalsDetail(Long transactionId);
     List<OrderHistoryDTO> getAccountOrder(String uuid);
     OrderHistoryDTO getOrderDetail(Long orderId);
+    List<ProfitLossDTO> getAccountSalesProfit(String uuid);
 }
