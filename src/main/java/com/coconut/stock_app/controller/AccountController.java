@@ -1,6 +1,8 @@
 package com.coconut.stock_app.controller;
 
+import com.coconut.stock_app.authentication.oauth.AuthenticationService;
 import com.coconut.stock_app.dto.account.*;
+import com.coconut.stock_app.entity.on_premise.User;
 import com.coconut.stock_app.service.AccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,72 +20,91 @@ import java.util.List;
 public class AccountController {
 
     private final AccountService accountService;
+    private final AuthenticationService authenticationService;
 
-    @GetMapping("/{uuid}/account/assets")
-    ResponseEntity<AssetDTO> getAccountAssets(@PathVariable String uuid) {
+    @GetMapping("/account/assets")
+    ResponseEntity<AssetDTO> getAccountAssets() {
+        User authenticatedUser = authenticationService.getAuthenticatedUser();
+        String uuid = authenticatedUser.getPrimaryAccount().getAccountUuid();
         AssetDTO assetDTO = accountService.getAsset(uuid);
 
         return ResponseEntity.ok(assetDTO);
     }
 
-    @GetMapping("/{uuid}/account/transactions/all")
-    ResponseEntity<List<TransactionHistoryDTO>> getTransactionsAll(@PathVariable String uuid) {
+    @GetMapping("/account/transactions/all")
+    ResponseEntity<List<TransactionHistoryDTO>> getTransactionsAll() {
+        User authenticatedUser = authenticationService.getAuthenticatedUser();
+        String uuid = authenticatedUser.getPrimaryAccount().getAccountUuid();
         List<TransactionHistoryDTO> transactionHistoryDTOS = accountService.getTransactionsAll(uuid);
         return ResponseEntity.ok(transactionHistoryDTOS);
     }
 
-    @GetMapping("/{uuid}/account/transactions/txn")
-    ResponseEntity<List<TransactionHistoryDTO>> getTransactionsTxn(@PathVariable String uuid) {
+    @GetMapping("/account/transactions/txn")
+    ResponseEntity<List<TransactionHistoryDTO>> getTransactionsTxn() {
+        User authenticatedUser = authenticationService.getAuthenticatedUser();
+        String uuid = authenticatedUser.getPrimaryAccount().getAccountUuid();
         List<TransactionHistoryDTO> transactionHistoryDTOS = accountService.getTransactionsTxn(uuid);
         return ResponseEntity.ok(transactionHistoryDTOS);
     }
 
-    @GetMapping("/{uuid}/account/transactions/deposits-withdrawals")
-    ResponseEntity<List<TransactionHistoryDTO>> getTransactionsDepositsAndWithdrawals(@PathVariable String uuid) {
+    @GetMapping("/account/transactions/deposits-withdrawals")
+    ResponseEntity<List<TransactionHistoryDTO>> getTransactionsDepositsAndWithdrawals() {
+        User authenticatedUser = authenticationService.getAuthenticatedUser();
+        String uuid = authenticatedUser.getPrimaryAccount().getAccountUuid();
         List<TransactionHistoryDTO> transactionHistoryDTOS = accountService.getTransactionsDepositAndWithdrawals(uuid);
         return ResponseEntity.ok(transactionHistoryDTOS);
     }
 
-    @GetMapping("/{uuid}/account/transactions/trade/detail/{trade_id}")
-    ResponseEntity<TradeDetailDTO> getTransactionsTradeDetail(@PathVariable String uuid, @PathVariable(name = "trade_id") Long tradeId) {
+    @GetMapping("/account/transactions/trade/detail/{trade_id}")
+    ResponseEntity<TradeDetailDTO> getTransactionsTradeDetail(@PathVariable(name = "trade_id") Long tradeId) {
+        User authenticatedUser = authenticationService.getAuthenticatedUser();
         TradeDetailDTO tradeDetailDTO = accountService.getTradeDetail(tradeId);
         return ResponseEntity.ok(tradeDetailDTO);
     }
 
 
 
-    @GetMapping("/{uuid}/account/transactions/deposits-withdrawals/detail/{transaction_id}")
-    ResponseEntity<TransactionAmountDTO> getTransactionsDepositsAndWithdrawalsDetail(@PathVariable String uuid, @PathVariable(name = "transaction_id") Long transactionId) {
+    @GetMapping("/account/transactions/deposits-withdrawals/detail/{transaction_id}")
+    ResponseEntity<TransactionAmountDTO> getTransactionsDepositsAndWithdrawalsDetail(@PathVariable(name = "transaction_id") Long transactionId) {
+        User authenticatedUser = authenticationService.getAuthenticatedUser();
         TransactionAmountDTO transactionAmountDTO = accountService.getTransactionsDepositsAndWithdrawalsDetail(transactionId);
         return ResponseEntity.ok(transactionAmountDTO);
     }
 
-    @GetMapping("/{uuid}/account/orders")
-    ResponseEntity<List<OrderHistoryDTO>> getAccountOrder(@PathVariable String uuid) {
+    @GetMapping("/account/orders")
+    ResponseEntity<List<OrderHistoryDTO>> getAccountOrder() {
+        User authenticatedUser = authenticationService.getAuthenticatedUser();
+        String uuid = authenticatedUser.getPrimaryAccount().getAccountUuid();
         List<OrderHistoryDTO> orderHistoryDTOS = accountService.getAccountOrder(uuid);
         return ResponseEntity.ok(orderHistoryDTOS);
     }
 
-    @GetMapping("/{uuid}/account/orders/detail/{order_id}")
-    ResponseEntity<OrderHistoryDTO> getAccountOrderDetail(@PathVariable String uuid, @PathVariable(name = "order_id") Long order_id) {
+    @GetMapping("/account/orders/detail/{order_id}")
+    ResponseEntity<OrderHistoryDTO> getAccountOrderDetail(@PathVariable(name = "order_id") Long order_id) {
+        User authenticatedUser = authenticationService.getAuthenticatedUser();
         OrderHistoryDTO orderHistoryDTO = accountService.getOrderDetail(order_id);
         return ResponseEntity.ok(orderHistoryDTO);
     }
 
-    @GetMapping("/{uuid}/account/sales-profit")
-    ResponseEntity<List<ProfitLossDTO>> getAccountSalesProfit(@PathVariable String uuid) {
+    @GetMapping("/account/sales-profit")
+    ResponseEntity<List<ProfitLossDTO>> getAccountSalesProfit() {
+        User authenticatedUser = authenticationService.getAuthenticatedUser();
+        String uuid = authenticatedUser.getPrimaryAccount().getAccountUuid();
         List<ProfitLossDTO> profitLossDTOS = accountService.getAccountSalesProfit(uuid);
         return ResponseEntity.ok(profitLossDTOS);
     }
 
-    @GetMapping("/{uuid}/account/sales-profit/detail/{sales_id}")
-    ResponseEntity<ProfitLossDTO> getAccountSalesProfitDetail(@PathVariable String uuid, @PathVariable(name = "sales_id") Long salesId) {
+    @GetMapping("/account/sales-profit/detail/{sales_id}")
+    ResponseEntity<ProfitLossDTO> getAccountSalesProfitDetail(@PathVariable(name = "sales_id") Long salesId) {
+        User authenticatedUser = authenticationService.getAuthenticatedUser();
         ProfitLossDTO profitLossDTO = accountService.getAccountSalesProfitDetail(salesId);
         return ResponseEntity.ok(profitLossDTO);
     }
 
-    @GetMapping("/{uuid}/account")
-    ResponseEntity<AccountDTO> getAccount(@PathVariable String uuid) {
+    @GetMapping("/account")
+    ResponseEntity<AccountDTO> getAccount() {
+        User authenticatedUser = authenticationService.getAuthenticatedUser();
+        String uuid = authenticatedUser.getPrimaryAccount().getAccountUuid();
         AccountDTO accountDTO = accountService.getAccount(uuid);
         return ResponseEntity.ok(accountDTO);
     }
