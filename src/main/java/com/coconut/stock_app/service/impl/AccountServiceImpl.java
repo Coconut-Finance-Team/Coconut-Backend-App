@@ -143,6 +143,14 @@ public class AccountServiceImpl implements AccountService {
         return profitLossDTO;
     }
 
+    public AccountDTO getAccount(String uuid){
+        Account account = accountRepository.findByAccountUuid(uuid)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_ACCOUNT));
+
+        AccountDTO accountDTO = new AccountDTO(account.getAccountId(), account.getCreatedAt());
+        return accountDTO;
+    }
+
     private TransactionHistoryDTO mapTradeToTransactionHistoryDTO(Trade trade, String accountUuid) {
         String status;
 

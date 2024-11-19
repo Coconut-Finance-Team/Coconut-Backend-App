@@ -16,4 +16,5 @@ public interface AccountService {
     OrderHistoryDTO getOrderDetail(Long orderId);
     List<ProfitLossDTO> getAccountSalesProfit(String uuid);
     ProfitLossDTO getAccountSalesProfitDetail(Long sales_id);
+    AccountDTO getAccount(String uuid);
 }
