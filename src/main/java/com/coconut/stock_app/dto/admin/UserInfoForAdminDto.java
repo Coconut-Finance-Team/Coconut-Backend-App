@@ -1,9 +1,8 @@
-package com.coconut.stock_app.dto.user;
+package com.coconut.stock_app.dto.admin;
 
 import com.coconut.stock_app.entity.on_premise.UserAccountStatus;
 import com.coconut.stock_app.entity.on_premise.UserRole;
 import lombok.*;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
