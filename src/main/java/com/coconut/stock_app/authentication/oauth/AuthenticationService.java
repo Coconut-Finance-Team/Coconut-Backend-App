@@ -1,7 +1,10 @@
 package com.coconut.stock_app.authentication.oauth;
 
 import com.coconut.stock_app.entity.on_premise.User;
+import com.coconut.stock_app.entity.on_premise.UserAccountStatus;
 import com.coconut.stock_app.entity.on_premise.UserRole;
+import com.coconut.stock_app.exception.CustomException;
+import com.coconut.stock_app.exception.ErrorCode;
 import com.coconut.stock_app.repository.on_premise.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -31,8 +34,14 @@ public class AuthenticationService {
         String email = authentication.getName(); // 보통 UserDetails의 username 반환
 
         // 이메일로 사용자 조회
-        return userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
+
+        if(user.getAccountStatus() == UserAccountStatus.SUSPENDED){
+            throw new CustomException(ErrorCode.SUSPEND_USER);
+        }
+
+        return user;
     }
 
     public boolean isAuthenticatedAdmin() {

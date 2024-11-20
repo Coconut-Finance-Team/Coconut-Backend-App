@@ -7,6 +7,7 @@ import com.coconut.stock_app.dto.admin.UserInfoForAdminDto;
 import com.coconut.stock_app.entity.on_premise.*;
 import com.coconut.stock_app.exception.CustomException;
 import com.coconut.stock_app.exception.ErrorCode;
+import com.coconut.stock_app.repository.on_premise.AccountRepository;
 import com.coconut.stock_app.repository.on_premise.UserRepository;
 import com.coconut.stock_app.service.AdminService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
     private final UserRepository userRepository;
+    private final AccountRepository accountRepository;
 
     public List<UserInfoForAdminDto> getAllUser(){
         List<User> users = userRepository.findAll();
@@ -70,6 +72,54 @@ public class AdminServiceImpl implements AdminService {
                 .userHistory(combineHistory)
                 .build();
 
+    }
+
+    public void suspendUser(String uuid){
+        User user = userRepository.findByUserUuid(uuid)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER));
+
+        if(user.getAccountStatus() == UserAccountStatus.SUSPENDED){
+            throw new CustomException(ErrorCode.USER_ALREADY_SUSPEND);
+        }
+
+        user.setAccountStatus(UserAccountStatus.SUSPENDED);
+        userRepository.save(user);
+    }
+
+    public void resumeUser(String uuid){
+        User user = userRepository.findByUserUuid(uuid)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER));
+
+        if(user.getAccountStatus() == UserAccountStatus.ACTIVE){
+            throw new CustomException(ErrorCode.USER_ALREADY_ACTIVE);
+        }
+
+        user.setAccountStatus(UserAccountStatus.ACTIVE);
+        userRepository.save(user);
+    }
+
+    public void suspendAccount(String uuid){
+        Account account = accountRepository.findByAccountUuid(uuid)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER));
+
+        if(account.getAccountStatus() == AccountStatus.OPEN){
+            throw new CustomException(ErrorCode.ACCOUNT_ALREADY_ACTIVE);
+        }
+
+        account.setAccountStatus(AccountStatus.CLOSED);
+        accountRepository.save(account);
+    }
+
+    public void resumeAccount(String uuid){
+        Account account = accountRepository.findByAccountUuid(uuid)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_USER));
+
+        if(account.getAccountStatus() == AccountStatus.CLOSED){
+            throw new CustomException(ErrorCode.ACCOUNT_ALREADY_SUSPEND);
+        }
+
+        account.setAccountStatus(AccountStatus.OPEN);
+        accountRepository.save(account);
     }
 
     private UserHistoryDTO orderToUserHistoryDTO(Order order){

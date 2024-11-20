@@ -18,8 +18,14 @@ public enum ErrorCode {
     NOT_EXIST_TRANSACTION(HttpStatus.NOT_FOUND,"입출금 기록을 찾을 수 없습니다."),
     NOT_EXIST_OWNED_STOCK(HttpStatus.NOT_FOUND,"보유 종목을 찾을 수 없습니다."),
     FORBIDDEN(HttpStatus.FORBIDDEN,"권한이 없습니다"),
+    SUSPEND_USER(HttpStatus.FORBIDDEN,"정지된 사용자입니다."),
+    SUSPEND_ACCOUNT(HttpStatus.FORBIDDEN,"정지된 계좌입니다."),
     UNAUTHORIZED_USER(HttpStatus.UNAUTHORIZED,"인증이 필요한 유저입니다."),
     INSUFFICIENT_FUNDS(HttpStatus.BAD_REQUEST, "금액이 부족합니다."),
+    USER_ALREADY_SUSPEND(HttpStatus.BAD_REQUEST, "유저가 이미 정지 상태입니다."),
+    USER_ALREADY_ACTIVE(HttpStatus.BAD_REQUEST, "유저가 이미 활성화 상태입니다."),
+    ACCOUNT_ALREADY_SUSPEND(HttpStatus.BAD_REQUEST, "계좌가 이미 정지 상태입니다."),
+    ACCOUNT_ALREADY_ACTIVE(HttpStatus.BAD_REQUEST, "계좌가 이미 활성화 상태입니다."),
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청입니다.");
 
     private final HttpStatus httpStatus;
