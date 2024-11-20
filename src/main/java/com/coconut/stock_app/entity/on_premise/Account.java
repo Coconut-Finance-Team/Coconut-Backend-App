@@ -57,6 +57,9 @@ public class Account extends BaseEntity implements Serializable {
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Order> orders;
 
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OwnedIPO> ownedIPOs;
+
     public void increaseBalance(BigDecimal amount){
         this.deposit = this.deposit.add(amount);
     }

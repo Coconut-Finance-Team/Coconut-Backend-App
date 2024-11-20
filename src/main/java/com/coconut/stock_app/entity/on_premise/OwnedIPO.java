@@ -1,9 +1,7 @@
 package com.coconut.stock_app.entity.on_premise;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,5 +22,9 @@ public class OwnedIPO {
     private Long quantity;
 
     private BigDecimal totalPrice;
+
+    @ManyToOne
+    @JoinColumn(name = "account_id", referencedColumnName = "accountId")
+    private Account account;
 
 }

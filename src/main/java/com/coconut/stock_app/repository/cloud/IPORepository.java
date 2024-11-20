@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface IPORepository extends JpaRepository<IPO, Long> {
@@ -18,4 +19,6 @@ public interface IPORepository extends JpaRepository<IPO, Long> {
         WHERE :currentDate BETWEEN i.subscriptionStartDate AND i.subscriptionEndDate
        """)
     List<IPO> findActiveIPOs(LocalDate currentDate);
+
+    Optional<IPO> findByIPOId(Long id);
 }
