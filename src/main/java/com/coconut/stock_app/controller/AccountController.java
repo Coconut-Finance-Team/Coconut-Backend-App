@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.coconut.stock_app.authentication.oauth.AuthenticationService;
+import com.coconut.stock_app.service.AuthenticationService;
 import com.coconut.stock_app.dto.account.*;
 import com.coconut.stock_app.entity.on_premise.User;
 import org.springframework.web.bind.annotation.GetMapping;

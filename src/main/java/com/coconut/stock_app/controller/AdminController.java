@@ -1,7 +1,7 @@
 package com.coconut.stock_app.controller;
 
 
-import com.coconut.stock_app.authentication.oauth.AuthenticationService;
+import com.coconut.stock_app.service.AuthenticationService;
 import com.coconut.stock_app.dto.admin.UserInfoDetailForAdminDTO;
 import com.coconut.stock_app.dto.admin.UserInfoForAdminDto;
 import com.coconut.stock_app.service.AdminService;
