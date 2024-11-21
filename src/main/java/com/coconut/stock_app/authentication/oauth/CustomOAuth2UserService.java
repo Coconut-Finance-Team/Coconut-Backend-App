@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.coconut.stock_app.repository.on_premise.UserRepository;
 import lombok.RequiredArgsConstructor;
 
-// OAuth 로그인
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
@@ -26,7 +25,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(userRequest);
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
-        // 사용자 정보 추출 (Google의 경우)
+        // 사용자 정보 추출
         String email = (String) attributes.get("email");
         String name = (String) attributes.get("name");
 
@@ -34,7 +33,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
                 attributes,
-                "email" // 이메일을 고유 식별자로 설정
+                "email" // email을 고유 식별자로 설정
         );
     }
 }
