@@ -20,32 +20,38 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Slf4j
 public class JwtRequestFilter extends OncePerRequestFilter {
 
-    private static final String AUTHORIZATION = "Authorization";
-
+    private static final String AUTHORIZATION_HEADER = "Authorization";
     private final MyUserDetailsService myUserDetailsService;
     private final JwtUtil jwtUtil;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
-        final String authorizationHeader = request.getHeader(AUTHORIZATION);
-        String jwt = jwtUtil.getJwtTokenFromHeader(authorizationHeader);
-        if (jwt != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            authenticateUser(jwt, request, response);
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain chain) throws ServletException, IOException {
+        try {
+            String jwt = jwtUtil.getJwtTokenFromHeader(request.getHeader(AUTHORIZATION_HEADER));
+            if (jwt != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                String userId = jwtUtil.extractUserId(jwt);
+                if (userId != null && jwtUtil.validateToken(jwt)) {
+                    UserDetails userDetails = myUserDetailsService.loadUserByUsername(userId);
+                    authenticateUser(userDetails, request);
+                }
+            }
+        } catch (Exception e) {
+            log.error("JWT 인증 처리 중 오류 발생: {}", e.getMessage());
+            // 인증 실패시에도 필터 체인은 계속 진행
         }
         chain.doFilter(request, response);
     }
 
-    private void authenticateUser(String jwt, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        if (jwtUtil.validateToken(jwt)) {
-            String email = jwtUtil.extractUsername(jwt);
-            UserDetails userDetails = myUserDetailsService.loadUserByUsername(email);
-
-            UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-            usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
-        } else {
-            log.error("인증되지 않은 JWT 토큰");
-        }
+    private void authenticateUser(UserDetails userDetails, HttpServletRequest request) {
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 }

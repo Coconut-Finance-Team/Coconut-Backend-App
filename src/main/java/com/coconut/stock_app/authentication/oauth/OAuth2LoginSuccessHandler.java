@@ -29,17 +29,26 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
                                         Authentication authentication) throws IOException {
         // OAuth2 사용자 정보 가져오기
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+
+        // 제공자의 사용자 고유 ID를 `id`로 사용 (Google의 경우 "sub" 속성)
+        String id = oAuth2User.getAttribute("sub"); // OAuth2 제공자의 사용자 ID
         String email = oAuth2User.getAttribute("email");
 
-        // 이메일로 사용자 조회
-        Optional<User> userOptional = userRepository.findByEmail(email);
+        // 사용자 조회
+        Optional<User> userOptional = userRepository.findById(id);
 
         if (userOptional.isPresent()) {
             // 기존 사용자: JWT 생성 및 메인 페이지로 리디렉션
-            String jwt = jwtUtil.generateToken(email);
+            String jwt = jwtUtil.generateToken(id); // JWT 생성 시 `id`를 기반으로
             response.sendRedirect(frontendUrl + "/?token=" + jwt);
         } else {
-            // 신규 사용자: 회원가입 페이지로 리디렉션
+            // 신규 사용자 처리
+            User newUser = new User();
+            newUser.setId(id); // OAuth2 제공자의 고유 ID
+            newUser.setEmail(email);
+            userRepository.save(newUser);
+
+            // 회원가입 페이지로 리디렉션
             response.sendRedirect(frontendUrl + "/signin");
         }
     }
