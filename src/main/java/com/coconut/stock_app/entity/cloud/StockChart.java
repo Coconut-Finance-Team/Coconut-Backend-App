@@ -18,29 +18,23 @@ public class StockChart extends BaseEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long chartId;
 
-    @Column(nullable = false)
     private BigDecimal openPrice;
 
-    @Column(nullable = false)
     private BigDecimal highPrice;
 
-    @Column(nullable = false)
     private BigDecimal lowPrice;
 
-    @Column(nullable = false)
     private BigDecimal currentPrice;
 
-    @Column
     private String versusSign;
 
-    @Column(nullable = false)
     private BigDecimal contingentVol;
 
-    @Column(nullable = false)
     private BigDecimal accumulatedVol;
 
-    @Column(nullable = false)
     private BigDecimal accumulatedAmount;
+
+    private String time;
 
 
     @ManyToOne

@@ -18,6 +18,7 @@ public class StockChartDTO {
     private BigDecimal openPrice;//7
     private BigDecimal highPrice;//8
     private BigDecimal lowPrice;//8
+    private String time;
     private String versusSign;//3
     private BigDecimal contingentVol;//12
     private BigDecimal accumulatedVol;//13
@@ -33,6 +34,7 @@ public class StockChartDTO {
                 .contingentVol(this.contingentVol)
                 .accumulatedVol(this.accumulatedVol)
                 .accumulatedAmount(this.accumulatedAmount)
+                .time(this.time)
                 .stock(stock)
                 .build();
     }

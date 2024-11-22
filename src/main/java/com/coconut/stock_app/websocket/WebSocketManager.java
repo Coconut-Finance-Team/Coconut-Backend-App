@@ -32,10 +32,10 @@ public class WebSocketManager {
     private final AtomicBoolean isConnected = new AtomicBoolean(false);
 
     private static final String[][] SUBSCRIPTIONS = {{"H0UPCNT0", "0001", "KOSPI"},
-            {"H0UPCNT0", "0002", "KOSDAQ"}, {"H0STCNT0", "005930", "삼성전자"},
+            {"H0UPCNT0", "1001", "KOSDAQ"}, {"H0STCNT0", "005930", "삼성전자"},
             {"H0STCNT0", "066570", "LG전자"}, {"H0STCNT0", "000660", "SK하이닉스"}};
 
-    //@PostConstruct
+    @PostConstruct
     public void init() {
         this.websocketUrl = apiConfig.getWebsocketUrl();
         this.maxRetryAttempts = apiConfig.getWebsocketRetryMaxAttempts();

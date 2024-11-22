@@ -20,7 +20,7 @@ public class StockInitializer {
 
     private final StockRepository stockRepository;
 
-    //@PostConstruct
+    @PostConstruct
     public void initializeStocks() {
         List<Stock> initialStocks = Arrays.asList(
                 Stock.builder()
@@ -43,6 +43,30 @@ public class StockInitializer {
                         .stockCode("000660")
                         .stockName("SK하이닉스")
                         .exchangeCode("KOSPI")
+                        .stockStatus(StockStatus.ACTIVE)
+                        .listedDate(LocalDate.of(1996, 12, 26))
+                        .stockCharts(new ArrayList<>())
+                        .build(),
+                Stock.builder()
+                        .stockCode("0001")
+                        .stockName("KOSPI")
+                        .exchangeCode("KOSPI")
+                        .stockStatus(StockStatus.ACTIVE)
+                        .listedDate(LocalDate.of(1996, 12, 26))
+                        .stockCharts(new ArrayList<>())
+                        .build(),
+                Stock.builder()
+                        .stockCode("0001")
+                        .stockName("KOSPI")
+                        .exchangeCode("KOSPI")
+                        .stockStatus(StockStatus.ACTIVE)
+                        .listedDate(LocalDate.of(1996, 12, 26))
+                        .stockCharts(new ArrayList<>())
+                        .build(),
+                Stock.builder()
+                        .stockCode("1001")
+                        .stockName("KOSDAQ")
+                        .exchangeCode("KOSDAQ")
                         .stockStatus(StockStatus.ACTIVE)
                         .listedDate(LocalDate.of(1996, 12, 26))
                         .stockCharts(new ArrayList<>())

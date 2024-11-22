@@ -1,7 +1,7 @@
 package com.coconut.stock_app.websocket;
 
 import com.coconut.stock_app.dto.stock.StockChartDTO;
-import com.coconut.stock_app.dto.stock.StockIndexDto;
+
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +13,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @RequiredArgsConstructor
 public class StockDataHandler {
 
-    private final DataStorageService storageService;
     private final ObjectMapper objectMapper;
+    private final StockPublisher stockPublisher;
 
     public void handleMessage(String payload) {
         try {
@@ -32,7 +32,7 @@ public class StockDataHandler {
 
             switch (values[0]) {
                 case "0001" -> handleKospiData(values);
-                case "0002" -> handleKosdaqData(values);
+                case "1001" -> handleKosdaqData(values);
                 default -> handleStockData(values);
             }
         } catch (Exception e) {
@@ -41,28 +41,29 @@ public class StockDataHandler {
     }
 
     private void handleKospiData(String[] values) {
-        StockIndexDto indexData = StockIndexDto.builder()
-                .marketCode(values[0])
-                .marketTime(values[1])
-                .currentIndex(values[2])
+        StockChartDTO indexData = StockChartDTO.builder()
+                .stockCode(values[0])
+                .currentPrice(new BigDecimal(values[2]))
+                .time(values[1])
                 .build();
 
-        storageService.saveIndexData("kospi", indexData);
+        stockPublisher.saveStockData(values[0], indexData);
     }
 
     private void handleKosdaqData(String[] values) {
-        StockIndexDto indexData = StockIndexDto.builder()
-                .marketCode(values[0])
-                .marketTime(values[1])
-                .currentIndex(values[2])
+        StockChartDTO indexData = StockChartDTO.builder()
+                .stockCode(values[0])
+                .currentPrice(new BigDecimal(values[2]))
+                .time(values[1])
                 .build();
 
-        storageService.saveIndexData("kosdaq", indexData);
+        stockPublisher.saveStockData(values[0], indexData);
     }
 
     private void handleStockData(String[] values) {
         StockChartDTO stockData = StockChartDTO.builder()
                 .stockCode(values[0])
+                .time(values[1])
                 .currentPrice(new BigDecimal(values[2]))
                 .versusSign(values[3])
                 .openPrice(new BigDecimal(values[7]))
@@ -73,7 +74,7 @@ public class StockDataHandler {
                 .accumulatedAmount(new BigDecimal(values[14]))
                 .build();
 
-        storageService.saveStockData(values[0], stockData);
+        stockPublisher.saveStockData(values[0], stockData);
     }
 
     private void handlePingPong() {
