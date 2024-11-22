@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserRegisterRequest {
-    private String id; // 사용자 고유 ID
+    private String id;
     private String username;
     private String email;
     private String password;
@@ -16,7 +16,6 @@ public class UserRegisterRequest {
     private String gender;
     private String job;
     private String investmentStyle;
-    private String birthdate;
     private String phone;
     private String socialSecurityNumber;
 }

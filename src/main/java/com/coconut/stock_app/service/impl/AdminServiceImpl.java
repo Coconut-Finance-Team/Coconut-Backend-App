@@ -64,7 +64,6 @@ public class AdminServiceImpl implements AdminService {
                 .gender(user.getGender())
                 .job(user.getJob())
                 .investmentStyle(user.getInvestmentStyle())
-                .birthdate(user.getBirthdate())
                 .status(user.getAccountStatus())
                 .createTime(account.getCreatedAt())
                 .role(user.getRole())

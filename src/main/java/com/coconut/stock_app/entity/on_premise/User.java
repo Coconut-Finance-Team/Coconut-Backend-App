@@ -1,11 +1,24 @@
 package com.coconut.stock_app.entity.on_premise;
 
-import java.io.Serializable;
-import java.time.LocalDate;
-import java.util.List;
 import com.coconut.stock_app.entity.common.BaseEntity;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import java.io.Serializable;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "users")
@@ -23,7 +36,7 @@ public class User extends BaseEntity implements Serializable {
     private String userUuid;
 
     @Column(unique = true, nullable = false, length = 50)
-    private String id; // 사용자 계정 ID
+    private String id;
 
     @Column(nullable = false, length = 100)
     private String username;
@@ -40,8 +53,6 @@ public class User extends BaseEntity implements Serializable {
     private String job;
 
     private String investmentStyle;
-
-    private LocalDate birthdate;
 
     private String phone;
 

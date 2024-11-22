@@ -1,15 +1,14 @@
 package com.coconut.stock_app.service.impl;
 
-import com.coconut.stock_app.service.AuthenticationService;
 import com.coconut.stock_app.dto.auth.UserRegisterRequest;
 import com.coconut.stock_app.dto.user.UserInfoDto;
 import com.coconut.stock_app.entity.on_premise.User;
 import com.coconut.stock_app.entity.on_premise.UserAccountStatus;
 import com.coconut.stock_app.entity.on_premise.UserRole;
 import com.coconut.stock_app.repository.on_premise.UserRepository;
+import com.coconut.stock_app.service.AuthenticationService;
 import com.coconut.stock_app.service.EmailService;
 import com.coconut.stock_app.service.UserService;
-import java.time.LocalDate;
 import java.util.Random;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +46,6 @@ public class UserServiceImpl implements UserService {
                 .gender(request.getGender())
                 .job(request.getJob())
                 .investmentStyle(request.getInvestmentStyle())
-                .birthdate(LocalDate.parse(request.getBirthdate()))
                 .phone(request.getPhone())
                 .socialSecurityNumber(request.getSocialSecurityNumber())
                 .accountStatus(UserAccountStatus.ACTIVE)
@@ -67,8 +65,6 @@ public class UserServiceImpl implements UserService {
                 .gender(user.getGender())
                 .job(user.getJob())
                 .investmentStyle(user.getInvestmentStyle())
-                .birthdate(
-                        user.getBirthdate() != null ? user.getBirthdate().toString() : null) // LocalDate를 String으로 변환
                 .primaryAccountId(user.getPrimaryAccount() != null ? user.getPrimaryAccount().getAccountId() : null)
                 .build();
     }

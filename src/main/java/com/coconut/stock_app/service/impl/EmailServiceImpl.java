@@ -20,8 +20,10 @@ public class EmailServiceImpl implements EmailService {
 
     private static final String EMAIL_VERIFICATION_PREFIX = "EmailVerification:";
     private static final String EMAIL_VERIFICATION_STATUS_PREFIX = "EmailVerified:";
+    private static final String GOOGLE_EMAIL_PREFIX = "GoogleVerified:";
     private static final int VERIFICATION_CODE_LENGTH = 6;
     private static final int CODE_EXPIRATION_MINUTES = 5;
+    private static final Duration GOOGLE_EMAIL_VERIFICATION_DURATION = Duration.ofDays(30);
 
     @Override
     public void sendVerificationEmail(String to) {
@@ -48,7 +50,7 @@ public class EmailServiceImpl implements EmailService {
 
         if (storedCode.equals(code)) {
             redisTemplate.delete(key);
-            setVerifiedStatus(email); // 이메일 인증 상태 저장
+            setVerifiedStatus(email);
             log.info("Email verified successfully: {}", email);
             return true;
         }
@@ -59,13 +61,38 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public boolean isEmailVerified(String email) {
-        String verifiedKey = getVerifiedKey(email);
-        return redisTemplate.opsForValue().get(verifiedKey) != null;
+        try {
+            String googleKey = getGoogleVerifiedKey(email);
+            if (redisTemplate.opsForValue().get(googleKey) != null) {
+                log.info("Google verified email: {}", email);
+                return true;
+            }
+
+            String verifiedKey = getVerifiedKey(email);
+            boolean isVerified = redisTemplate.opsForValue().get(verifiedKey) != null;
+            log.info("Email verification status for {}: {}", email, isVerified);
+            return isVerified;
+        } catch (Exception e) {
+            log.error("Error checking email verification status: {}", email, e);
+            return false;
+        }
     }
 
-    /**
-     * 임시 비밀번호 전송
-     */
+    @Override
+    public void setGoogleEmailVerified(String email) {
+        try {
+            redisTemplate.opsForValue().set(
+                    getGoogleVerifiedKey(email),
+                    "true",
+                    GOOGLE_EMAIL_VERIFICATION_DURATION
+            );
+            log.info("Set Google email verification for: {}", email);
+        } catch (Exception e) {
+            log.error("Failed to set Google email verification: {}", email, e);
+            throw new RuntimeException("Failed to verify Google email", e);
+        }
+    }
+
     @Override
     public void sendTemporaryPassword(String to, String temporaryPassword) {
         try {
@@ -79,10 +106,6 @@ public class EmailServiceImpl implements EmailService {
             log.error("Failed to send temporary password email to: {}", to, e);
             throw new RuntimeException("이메일 발송 실패", e);
         }
-    }
-
-    private String createTemporaryPasswordEmailContent(String temporaryPassword) {
-        return String.format("임시 비밀번호: %s\n해당 비밀번호로 로그인 후 비밀번호를 반드시 변경해주세요.", temporaryPassword);
     }
 
     private void sendEmail(String to, String verificationCode) {
@@ -105,7 +128,7 @@ public class EmailServiceImpl implements EmailService {
         redisTemplate.opsForValue().set(
                 getVerifiedKey(email),
                 "true",
-                Duration.ofHours(1) // 이메일 인증 상태 유효 시간
+                Duration.ofHours(1)
         );
     }
 
@@ -120,11 +143,20 @@ public class EmailServiceImpl implements EmailService {
                 verificationCode, CODE_EXPIRATION_MINUTES);
     }
 
+    private String createTemporaryPasswordEmailContent(String temporaryPassword) {
+        return String.format("임시 비밀번호: %s\n해당 비밀번호로 로그인 후 비밀번호를 반드시 변경해주세요.",
+                temporaryPassword);
+    }
+
     private String getVerificationKey(String email) {
         return EMAIL_VERIFICATION_PREFIX + email;
     }
 
     private String getVerifiedKey(String email) {
         return EMAIL_VERIFICATION_STATUS_PREFIX + email;
+    }
+
+    private String getGoogleVerifiedKey(String email) {
+        return GOOGLE_EMAIL_PREFIX + email;
     }
 }

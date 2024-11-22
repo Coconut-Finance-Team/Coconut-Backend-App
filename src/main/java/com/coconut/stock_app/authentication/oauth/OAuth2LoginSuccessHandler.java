@@ -3,9 +3,12 @@ package com.coconut.stock_app.authentication.oauth;
 import com.coconut.stock_app.authentication.jwt.JwtUtil;
 import com.coconut.stock_app.entity.on_premise.User;
 import com.coconut.stock_app.repository.on_premise.UserRepository;
+import com.coconut.stock_app.service.EmailService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,9 +20,9 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
-
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+    private final EmailService emailService;
 
     @Value("${frontend.url}")
     private String frontendUrl;
@@ -27,29 +30,25 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
-        // OAuth2 사용자 정보 가져오기
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-
-        // 제공자의 사용자 고유 ID를 `id`로 사용 (Google의 경우 "sub" 속성)
-        String id = oAuth2User.getAttribute("sub"); // OAuth2 제공자의 사용자 ID
         String email = oAuth2User.getAttribute("email");
+        String name = oAuth2User.getAttribute("name");
 
-        // 사용자 조회
-        Optional<User> userOptional = userRepository.findById(id);
+        // OAuth2 로그인한 이메일은 자동으로 인증 처리
+        emailService.setGoogleEmailVerified(email);
 
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        String redirectUrl;
         if (userOptional.isPresent()) {
-            // 기존 사용자: JWT 생성 및 메인 페이지로 리디렉션
-            String jwt = jwtUtil.generateToken(id); // JWT 생성 시 `id`를 기반으로
-            response.sendRedirect(frontendUrl + "/?token=" + jwt);
+            String jwt = jwtUtil.generateToken(userOptional.get().getId());
+            redirectUrl = frontendUrl + "/?token=" + jwt;
         } else {
-            // 신규 사용자 처리
-            User newUser = new User();
-            newUser.setId(id); // OAuth2 제공자의 고유 ID
-            newUser.setEmail(email);
-            userRepository.save(newUser);
-
-            // 회원가입 페이지로 리디렉션
-            response.sendRedirect(frontendUrl + "/signin");
+            redirectUrl = frontendUrl + "/signin?email=" + URLEncoder.encode(email, StandardCharsets.UTF_8)
+                    + "&name=" + URLEncoder.encode(name, StandardCharsets.UTF_8)
+                    + "&googleId=" + URLEncoder.encode(oAuth2User.getAttribute("sub"), StandardCharsets.UTF_8);
         }
+
+        response.sendRedirect(redirectUrl);
     }
 }

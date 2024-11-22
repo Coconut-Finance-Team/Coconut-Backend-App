@@ -8,4 +8,6 @@ public interface EmailService {
     boolean isEmailVerified(String email);
 
     void sendTemporaryPassword(String to, String temporaryPassword);
+
+    void setGoogleEmailVerified(String email);
 }
