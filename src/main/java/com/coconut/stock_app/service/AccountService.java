@@ -17,4 +17,5 @@ public interface AccountService {
     AccountDTO getAccount(String uuid);
     AccountCreationResponse createAccount(AccountCreationRequest request);
     List<InvestmentDTO> getInvestment(String uuid);
+    List<OwnedIpoDTO> getOwnedIpoDTO(String uuid);
 }

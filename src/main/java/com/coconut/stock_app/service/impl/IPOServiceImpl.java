@@ -63,6 +63,7 @@ public class IPOServiceImpl implements IPOService {
                 .subscriptionStartDate(ipo.getSubscriptionStartDate())
                 .subscriptionEndDate(ipo.getSubscriptionEndDate())
                 .refundDate(ipo.getRefundDate())
+                .listingDate(ipo.getListingDate())
                 .maxSubscriptionLimit(ipo.getMaxSubscriptionLimit())
                 .finalOfferPrice(ipo.getFinalOfferPrice())
                 .build();

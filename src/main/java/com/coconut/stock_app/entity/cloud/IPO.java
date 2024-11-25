@@ -33,6 +33,8 @@ public class IPO extends BaseEntity {
 
     private LocalDate refundDate;
 
+    private LocalDate listingDate;
+
     private Long maxSubscriptionLimit; //최고 청약 한도
 
     private BigDecimal finalOfferPrice; // 확정 발행가

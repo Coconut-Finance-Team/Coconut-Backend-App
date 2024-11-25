@@ -7,6 +7,8 @@ import com.coconut.stock_app.entity.on_premise.Account;
 import com.coconut.stock_app.entity.on_premise.AccountStatus;
 import com.coconut.stock_app.entity.on_premise.User;
 import com.coconut.stock_app.repository.cloud.StockChartRepository;
+import com.coconut.stock_app.entity.cloud.IPO;
+import com.coconut.stock_app.repository.cloud.IPORepository;
 import com.coconut.stock_app.repository.on_premise.AccountRepository;
 import com.coconut.stock_app.service.AccountService;
 import com.coconut.stock_app.service.UserService;
@@ -14,7 +16,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -42,6 +43,8 @@ public class AccountServiceImpl implements AccountService {
     private final StockRepository stockRepository;
     private final OrderRepository orderRepository;
     private final ProfitLossRepository profitLossRepository;
+    private final OwnedIPORepository ownedIPORepository;
+    private final IPORepository ipoRepository;
     private final UserRepository userRepository;
     private final OwnedStockRepository ownedStockRepository;
     private final StockChartRepository stockChartRepository;
@@ -220,6 +223,31 @@ public class AccountServiceImpl implements AccountService {
                 .profitPercent(profitRate)
                 .build();
     }
+
+    public List<OwnedIpoDTO> getOwnedIpoDTO(String uuid){
+        List<OwnedIPO> ownedIPOS = ownedIPORepository.findAllByAccountUuid(uuid);
+
+        List<OwnedIpoDTO> ownedIpoDTOS = ownedIPOS.stream()
+                .map(this::mapOwnedIpoToOwnedIpoDTO)
+                .collect(Collectors.toList());
+
+        return ownedIpoDTOS;
+    }
+
+    private OwnedIpoDTO mapOwnedIpoToOwnedIpoDTO(OwnedIPO ownedIPO){
+        IPO ipo = ipoRepository.findByIPOId(ownedIPO.getOwnedIPOid())
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_IPO));
+
+        return OwnedIpoDTO.builder()
+                .id(ownedIPO.getOwnedIPOid())
+                .listingDate(ipo.getListingDate())
+                .name(ipo.getCompanyName())
+                .quantity(ownedIPO.getQuantity())
+                .refundDate(ipo.getRefundDate())
+                .subscriptionDate(ownedIPO.getCreatedAt().toLocalDate())
+                .totalPrice(ownedIPO.getTotalPrice())
+                .build();
+    }
     private TransactionHistoryDTO mapTradeToTransactionHistoryDTO(Trade trade, String accountUuid) {
         String status;
 
@@ -270,10 +298,16 @@ public class AccountServiceImpl implements AccountService {
     }
 
     private ProfitLossDTO mapProfitLossToProfitLossDTO(ProfitLoss profitLoss) {
-        return ProfitLossDTO.builder().id(profitLoss.getProfitLossId()).stockCode(profitLoss.getStockCode())
-                .stockName(profitLoss.getStockName()).purchasePricePerShare(profitLoss.getPurchasePricePerShare())
-                .salePricePerShare(profitLoss.getSalePricePerShare()).profitRate(profitLoss.getProfitRate())
-                .fee(profitLoss.getFee()).saleQuantity(profitLoss.getSaleQuantity()).build();
+        return ProfitLossDTO.builder()
+                .id(profitLoss.getProfitLossId())
+                .stockCode(profitLoss.getStockCode())
+                .stockName(profitLoss.getStockName())
+                .purchasePricePerShare(profitLoss.getPurchasePricePerShare())
+                .salePricePerShare(profitLoss.getSalePricePerShare())
+                .profitRate(profitLoss.getProfitRate())
+                .fee(profitLoss.getFee())
+                .saleQuantity(profitLoss.getSaleQuantity())
+                .build();
     }
 
 }

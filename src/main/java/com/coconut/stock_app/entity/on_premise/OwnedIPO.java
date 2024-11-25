@@ -1,6 +1,7 @@
 package com.coconut.stock_app.entity.on_premise;
 
 
+import com.coconut.stock_app.entity.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +16,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OwnedIPO {
+public class OwnedIPO extends BaseEntity {
     @Id
     private Long ownedIPOid;
 
