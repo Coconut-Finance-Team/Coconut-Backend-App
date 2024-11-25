@@ -116,5 +116,14 @@ public class AccountController {
         return ResponseEntity.ok(accountDTO);
     }
 
+    @GetMapping("/account/investment")
+    ResponseEntity<List<InvestmentDTO>> getInvestment(){
+        User authenticatedUser = authenticationService.getAuthenticatedUser();
+        String uuid = authenticatedUser.getPrimaryAccount().getAccountUuid();
+
+        List<InvestmentDTO> investmentDTOS = accountService.getInvestment(uuid);
+        return ResponseEntity.ok(investmentDTOS);
+    }
+
 
 }
