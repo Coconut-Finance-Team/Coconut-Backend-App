@@ -38,7 +38,6 @@ public class AccountController {
         User authenticatedUser = authenticationService.getAuthenticatedUser();
         String uuid = authenticatedUser.getPrimaryAccount().getAccountUuid();
         AssetDTO assetDTO = accountService.getAsset(uuid);
-
         return ResponseEntity.ok(assetDTO);
     }
 

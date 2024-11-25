@@ -2,6 +2,7 @@ package com.coconut.stock_app.dto.stock;
 
 import com.coconut.stock_app.entity.cloud.Stock;
 import com.coconut.stock_app.entity.cloud.StockChart;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,16 +14,16 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Builder
 public class StockChartDTO {
-    private String stockCode;//0
-    private BigDecimal currentPrice;//2
-    private BigDecimal openPrice;//7
-    private BigDecimal highPrice;//8
-    private BigDecimal lowPrice;//8
+    private String stockCode;
+    private BigDecimal currentPrice;
+    private BigDecimal openPrice;
+    private BigDecimal highPrice;
+    private BigDecimal lowPrice;
+    private String versusSign;
+    private BigDecimal contingentVol;
+    private BigDecimal accumulatedVol;
+    private BigDecimal accumulatedAmount;
     private String time;
-    private String versusSign;//3
-    private BigDecimal contingentVol;//12
-    private BigDecimal accumulatedVol;//13
-    private BigDecimal accumulatedAmount; //14
 
     public StockChart toEntity(Stock stock) {
         return StockChart.builder()
@@ -34,7 +35,7 @@ public class StockChartDTO {
                 .contingentVol(this.contingentVol)
                 .accumulatedVol(this.accumulatedVol)
                 .accumulatedAmount(this.accumulatedAmount)
-                .time(this.time)
+                .time(LocalDateTime.parse(this.time))
                 .stock(stock)
                 .build();
     }
