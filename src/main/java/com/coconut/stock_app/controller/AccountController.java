@@ -25,7 +25,6 @@ public class AccountController {
 
     private final AccountService accountService;
     private final AuthenticationService authenticationService;
-    private final UserService userService;
 
     @PostMapping("/account/create")
     public ResponseEntity<AccountCreationResponse> createAccount(@RequestBody AccountCreationRequest request) {
@@ -38,7 +37,6 @@ public class AccountController {
         User authenticatedUser = authenticationService.getAuthenticatedUser();
         String uuid = authenticatedUser.getPrimaryAccount().getAccountUuid();
         AssetDTO assetDTO = accountService.getAsset(uuid);
-
         return ResponseEntity.ok(assetDTO);
     }
 

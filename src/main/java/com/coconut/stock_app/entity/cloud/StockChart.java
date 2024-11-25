@@ -2,6 +2,7 @@ package com.coconut.stock_app.entity.cloud;
 
 import com.coconut.stock_app.entity.common.BaseEntity;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.*;
 
 import java.io.Serializable;
@@ -34,8 +35,8 @@ public class StockChart extends BaseEntity implements Serializable {
 
     private BigDecimal accumulatedAmount;
 
-    private String time;
-
+    @Column(name = "time")
+    private LocalDateTime time;
 
     @ManyToOne
     @JoinColumn(name = "stock_code", referencedColumnName = "stockCode", nullable = false)
