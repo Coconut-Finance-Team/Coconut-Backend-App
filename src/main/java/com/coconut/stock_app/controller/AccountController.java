@@ -25,7 +25,6 @@ public class AccountController {
 
     private final AccountService accountService;
     private final AuthenticationService authenticationService;
-    private final UserService userService;
 
     @PostMapping("/account/create")
     public ResponseEntity<AccountCreationResponse> createAccount(@RequestBody AccountCreationRequest request) {
