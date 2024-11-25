@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface StockChartRepository extends JpaRepository<StockChart, Long> {
+public interface StockChartRepository extends JpaRepository<StockChart, String> {
     // 특정 종목의 전체 차트 데이터 조회
     List<StockChart> findByStockStockCodeOrderByTimeAsc(String stockCode);
 
