@@ -110,6 +110,16 @@ public class AccountController {
         return ResponseEntity.ok(profitLossDTO);
     }
 
+    @GetMapping("/account/ipo")
+    ResponseEntity<List<OwnedIpoDTO>> getOwnedIpoDTO(){
+        User authenticatedUser = authenticationService.getAuthenticatedUser();
+        String uuid = authenticatedUser.getPrimaryAccount().getAccountUuid();
+
+        List<OwnedIpoDTO> ownedIpoDTOS = accountService.getOwnedIpoDTO(uuid);
+
+        return ResponseEntity.ok(ownedIpoDTOS);
+    }
+
     @GetMapping("/account")
     ResponseEntity<AccountDTO> getAccount() {
         User authenticatedUser = authenticationService.getAuthenticatedUser();

@@ -2,9 +2,11 @@ package com.coconut.stock_app.service.impl;
 
 import com.coconut.stock_app.dto.account.AccountCreationRequest;
 import com.coconut.stock_app.dto.account.AccountCreationResponse;
+import com.coconut.stock_app.entity.cloud.IPO;
 import com.coconut.stock_app.entity.on_premise.Account;
 import com.coconut.stock_app.entity.on_premise.AccountStatus;
 import com.coconut.stock_app.entity.on_premise.User;
+import com.coconut.stock_app.repository.cloud.IPORepository;
 import com.coconut.stock_app.repository.on_premise.AccountRepository;
 import com.coconut.stock_app.service.AccountService;
 import com.coconut.stock_app.service.UserService;
@@ -38,6 +40,8 @@ public class AccountServiceImpl implements AccountService {
     private final StockRepository stockRepository;
     private final OrderRepository orderRepository;
     private final ProfitLossRepository profitLossRepository;
+    private final OwnedIPORepository ownedIPORepository;
+    private final IPORepository ipoRepository;
 
     @Override
     public AccountCreationResponse createAccount(AccountCreationRequest request) {
@@ -199,6 +203,30 @@ public class AccountServiceImpl implements AccountService {
         return accountDTO;
     }
 
+    public List<OwnedIpoDTO> getOwnedIpoDTO(String uuid){
+        List<OwnedIPO> ownedIPOS = ownedIPORepository.findAllByAccountUuid(uuid);
+
+        List<OwnedIpoDTO> ownedIpoDTOS = ownedIPOS.stream()
+                .map(this::mapOwnedIpoToOwnedIpoDTO)
+                .collect(Collectors.toList());
+
+        return ownedIpoDTOS;
+    }
+
+    private OwnedIpoDTO mapOwnedIpoToOwnedIpoDTO(OwnedIPO ownedIPO){
+        IPO ipo = ipoRepository.findByIPOId(ownedIPO.getOwnedIPOid())
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_IPO));
+
+        return OwnedIpoDTO.builder()
+                .id(ownedIPO.getOwnedIPOid())
+                .listingDate(ipo.getListingDate())
+                .name(ipo.getCompanyName())
+                .quantity(ownedIPO.getQuantity())
+                .refundDate(ipo.getRefundDate())
+                .subscriptionDate(ownedIPO.getCreatedAt().toLocalDate())
+                .totalPrice(ownedIPO.getTotalPrice())
+                .build();
+    }
     private TransactionHistoryDTO mapTradeToTransactionHistoryDTO(Trade trade, String accountUuid) {
         String status;
 
