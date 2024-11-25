@@ -52,6 +52,7 @@ public class WebSocketManager {
         return new AbstractWebSocketHandler() {
             @Override
             public void afterConnectionEstablished(WebSocketSession newSession) {
+                System.out.println("---------------------------------");
                 session = newSession;
                 isConnected.set(true);
                 log.info("WebSocket 연결 성공");
