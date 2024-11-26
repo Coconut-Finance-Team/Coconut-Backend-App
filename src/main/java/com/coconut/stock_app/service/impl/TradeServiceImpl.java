@@ -90,7 +90,7 @@ public class TradeServiceImpl implements TradeService {
 
         buyOrder.orderExecution(quantity);
         orderRepository.save(buyOrder);
-        sellOrder.setOrderQuantity(quantity);
+        sellOrder.orderExecution(quantity);
         orderRepository.save(sellOrder);
 
         updateAccountBalance(sellOrder, buyOrder, quantity);
