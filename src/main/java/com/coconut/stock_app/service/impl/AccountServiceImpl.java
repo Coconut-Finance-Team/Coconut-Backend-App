@@ -195,13 +195,17 @@ public class AccountServiceImpl implements AccountService {
 
     public List<InvestmentDTO> getInvestment(String uuid) {
         List<OwnedStock> ownedStocks = ownedStockRepository.findAllByAccountUuid(uuid);
-        List<InvestmentDTO> investmentDTOS = ownedStocks.stream().map(this::mapOwnedStockToInvestmentDTO).
-                collect(Collectors.toList());
 
+        List<InvestmentDTO> investmentDTOS = ownedStocks.stream()
+                .map(this::mapOwnedStockToInvestmentDTO)
+                .collect(Collectors.toList());
+
+        System.out.println("Final DTOs: " + investmentDTOS);
         return investmentDTOS;
     }
 
     private InvestmentDTO mapOwnedStockToInvestmentDTO(OwnedStock ownedStock) {
+
         Stock stock = stockRepository.findByStockCode(ownedStock.getStockCode())
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_STOCK));
 
@@ -209,10 +213,17 @@ public class AccountServiceImpl implements AccountService {
                 .stream().findFirst()
                 .orElseThrow(() -> new RuntimeException("No StockChart found for stockCode: " + stock.getStockCode()));
 
-        BigDecimal pricePerShare = ownedStock.getTotalPurchasePrice().divide(new BigDecimal(ownedStock.getQuantity()));
-        BigDecimal profit = stockChart.getCurrentPrice().subtract(pricePerShare);
-        BigDecimal profitRate = profit.divide(pricePerShare, 4, RoundingMode.HALF_UP) // 소수점 4자리까지 계산
-                .multiply(BigDecimal.valueOf(100));
+        System.out.println("Current price: " + stockChart.getCurrentPrice());
+
+        BigDecimal pricePerShare = ownedStock.getTotalPurchasePrice().divide(new BigDecimal(ownedStock.getQuantity()), RoundingMode.HALF_UP);
+        System.out.println("Price per share: " + pricePerShare);
+
+        BigDecimal profit = stockChart.getCurrentPrice().subtract(pricePerShare).multiply(new BigDecimal(ownedStock.getQuantity()));
+        System.out.println("Profit: " + profit);
+
+        BigDecimal profitRate = pricePerShare.compareTo(BigDecimal.ZERO) == 0 ? BigDecimal.ZERO :
+                profit.divide(pricePerShare, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
+        System.out.println("Profit rate: " + profitRate);
 
         return InvestmentDTO.builder()
                 .stockName(stock.getStockName())
