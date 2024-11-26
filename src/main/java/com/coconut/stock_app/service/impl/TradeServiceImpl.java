@@ -24,9 +24,7 @@ public class TradeServiceImpl implements TradeService {
     private final AccountRepository accountRepository;
     private final OwnedStockRepository ownedStockRepository;
 
-    public void processBuyOrder(OrderDTO buyOrderDTO){
-        Account account = accountRepository.findByAccountUuid(buyOrderDTO.getAccountUuId())
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_ACCOUNT));
+    public void processBuyOrder(OrderDTO buyOrderDTO, Account account){
 
         BigDecimal totalCost = buyOrderDTO.getOrderPrice().multiply(new BigDecimal(buyOrderDTO.getOrderQuantity()));
         BigDecimal availableAmount = account.getDeposit().subtract(account.getReservedDeposit());
@@ -54,10 +52,7 @@ public class TradeServiceImpl implements TradeService {
         }
     }
 
-    public void processSellOrder(OrderDTO sellOrderDTO){
-        Account account = accountRepository.findByAccountUuid(sellOrderDTO.getAccountUuId())
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_ACCOUNT));
-
+    public void processSellOrder(OrderDTO sellOrderDTO, Account account){
 
         Order sellOrder = saveOrder(sellOrderDTO, OrderType.SELL, account);
         boolean isTrade = true;

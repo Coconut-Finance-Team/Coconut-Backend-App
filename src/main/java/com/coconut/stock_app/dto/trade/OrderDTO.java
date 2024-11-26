@@ -13,5 +13,4 @@ public class OrderDTO {
     private String stockCode;
     private Long orderQuantity;
     private BigDecimal orderPrice;
-    private String accountUuId;
 }

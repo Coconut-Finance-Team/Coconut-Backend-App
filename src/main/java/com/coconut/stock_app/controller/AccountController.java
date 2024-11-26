@@ -2,6 +2,9 @@ package com.coconut.stock_app.controller;
 
 import com.coconut.stock_app.dto.account.AccountCreationRequest;
 import com.coconut.stock_app.dto.account.AccountCreationResponse;
+import com.coconut.stock_app.entity.on_premise.Account;
+import com.coconut.stock_app.exception.CustomException;
+import com.coconut.stock_app.exception.ErrorCode;
 import com.coconut.stock_app.service.AccountService;
 import com.coconut.stock_app.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +28,6 @@ public class AccountController {
 
     private final AccountService accountService;
     private final AuthenticationService authenticationService;
-    private final UserService userService;
 
     @PostMapping("/account/create")
     public ResponseEntity<AccountCreationResponse> createAccount(@RequestBody AccountCreationRequest request) {
@@ -36,16 +38,21 @@ public class AccountController {
     @GetMapping("/account/assets")
     ResponseEntity<AssetDTO> getAccountAssets() {
         User authenticatedUser = authenticationService.getAuthenticatedUser();
-        String uuid = authenticatedUser.getPrimaryAccount().getAccountUuid();
-        AssetDTO assetDTO = accountService.getAsset(uuid);
+        Account account = authenticatedUser.getPrimaryAccount();
+        if(account == null) throw new CustomException(ErrorCode.NOT_EXIST_ACCOUNT);
+        String uuid = account.getAccountUuid();
 
+        AssetDTO assetDTO = accountService.getAsset(uuid);
         return ResponseEntity.ok(assetDTO);
     }
 
     @GetMapping("/account/transactions/all")
     ResponseEntity<List<TransactionHistoryDTO>> getTransactionsAll() {
         User authenticatedUser = authenticationService.getAuthenticatedUser();
-        String uuid = authenticatedUser.getPrimaryAccount().getAccountUuid();
+        Account account = authenticatedUser.getPrimaryAccount();
+        if(account == null) throw new CustomException(ErrorCode.NOT_EXIST_ACCOUNT);
+        String uuid = account.getAccountUuid();
+
         List<TransactionHistoryDTO> transactionHistoryDTOS = accountService.getTransactionsAll(uuid);
         return ResponseEntity.ok(transactionHistoryDTOS);
     }
@@ -53,7 +60,10 @@ public class AccountController {
     @GetMapping("/account/transactions/txn")
     ResponseEntity<List<TransactionHistoryDTO>> getTransactionsTxn() {
         User authenticatedUser = authenticationService.getAuthenticatedUser();
-        String uuid = authenticatedUser.getPrimaryAccount().getAccountUuid();
+        Account account = authenticatedUser.getPrimaryAccount();
+        if(account == null) throw new CustomException(ErrorCode.NOT_EXIST_ACCOUNT);
+        String uuid = account.getAccountUuid();
+
         List<TransactionHistoryDTO> transactionHistoryDTOS = accountService.getTransactionsTxn(uuid);
         return ResponseEntity.ok(transactionHistoryDTOS);
     }
@@ -61,7 +71,10 @@ public class AccountController {
     @GetMapping("/account/transactions/deposits-withdrawals")
     ResponseEntity<List<TransactionHistoryDTO>> getTransactionsDepositsAndWithdrawals() {
         User authenticatedUser = authenticationService.getAuthenticatedUser();
-        String uuid = authenticatedUser.getPrimaryAccount().getAccountUuid();
+        Account account = authenticatedUser.getPrimaryAccount();
+        if(account == null) throw new CustomException(ErrorCode.NOT_EXIST_ACCOUNT);
+        String uuid = account.getAccountUuid();
+
         List<TransactionHistoryDTO> transactionHistoryDTOS = accountService.getTransactionsDepositAndWithdrawals(uuid);
         return ResponseEntity.ok(transactionHistoryDTOS);
     }
@@ -83,7 +96,10 @@ public class AccountController {
     @GetMapping("/account/orders")
     ResponseEntity<List<OrderHistoryDTO>> getAccountOrder() {
         User authenticatedUser = authenticationService.getAuthenticatedUser();
-        String uuid = authenticatedUser.getPrimaryAccount().getAccountUuid();
+        Account account = authenticatedUser.getPrimaryAccount();
+        if(account == null) throw new CustomException(ErrorCode.NOT_EXIST_ACCOUNT);
+        String uuid = account.getAccountUuid();
+
         List<OrderHistoryDTO> orderHistoryDTOS = accountService.getAccountOrder(uuid);
         return ResponseEntity.ok(orderHistoryDTOS);
     }
@@ -98,7 +114,10 @@ public class AccountController {
     @GetMapping("/account/sales-profit")
     ResponseEntity<List<ProfitLossDTO>> getAccountSalesProfit() {
         User authenticatedUser = authenticationService.getAuthenticatedUser();
-        String uuid = authenticatedUser.getPrimaryAccount().getAccountUuid();
+        Account account = authenticatedUser.getPrimaryAccount();
+        if(account == null) throw new CustomException(ErrorCode.NOT_EXIST_ACCOUNT);
+        String uuid = account.getAccountUuid();
+
         List<ProfitLossDTO> profitLossDTOS = accountService.getAccountSalesProfit(uuid);
         return ResponseEntity.ok(profitLossDTOS);
     }
@@ -110,12 +129,38 @@ public class AccountController {
         return ResponseEntity.ok(profitLossDTO);
     }
 
+    @GetMapping("/account/ipo")
+    ResponseEntity<List<OwnedIpoDTO>> getOwnedIpoDTO(){
+        User authenticatedUser = authenticationService.getAuthenticatedUser();
+        Account account = authenticatedUser.getPrimaryAccount();
+        if(account == null) throw new CustomException(ErrorCode.NOT_EXIST_ACCOUNT);
+        String uuid = account.getAccountUuid();
+
+        List<OwnedIpoDTO> ownedIpoDTOS = accountService.getOwnedIpoDTO(uuid);
+
+        return ResponseEntity.ok(ownedIpoDTOS);
+    }
+
     @GetMapping("/account")
     ResponseEntity<AccountDTO> getAccount() {
         User authenticatedUser = authenticationService.getAuthenticatedUser();
-        String uuid = authenticatedUser.getPrimaryAccount().getAccountUuid();
+        Account account = authenticatedUser.getPrimaryAccount();
+        if(account == null) throw new CustomException(ErrorCode.NOT_EXIST_ACCOUNT);
+        String uuid = account.getAccountUuid();
+
         AccountDTO accountDTO = accountService.getAccount(uuid);
         return ResponseEntity.ok(accountDTO);
+    }
+
+    @GetMapping("/account/investment")
+    ResponseEntity<List<InvestmentDTO>> getInvestment(){
+        User authenticatedUser = authenticationService.getAuthenticatedUser();
+        Account account = authenticatedUser.getPrimaryAccount();
+        if(account == null) throw new CustomException(ErrorCode.NOT_EXIST_ACCOUNT);
+        String uuid = account.getAccountUuid();
+
+        List<InvestmentDTO> investmentDTOS = accountService.getInvestment(uuid);
+        return ResponseEntity.ok(investmentDTOS);
     }
 
 

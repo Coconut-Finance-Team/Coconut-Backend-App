@@ -36,7 +36,7 @@ public class StockChartResponse {
                 .contingentVol(entity.getContingentVol())
                 .accumulatedVol(entity.getAccumulatedVol())
                 .accumulatedAmount(entity.getAccumulatedAmount())
-                .time(entity.getTime())
+                .time(String.valueOf(entity.getTime()))
                 .build();
     }
 }

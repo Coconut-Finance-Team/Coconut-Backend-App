@@ -16,4 +16,6 @@ public interface AccountService {
     ProfitLossDTO getAccountSalesProfitDetail(Long sales_id);
     AccountDTO getAccount(String uuid);
     AccountCreationResponse createAccount(AccountCreationRequest request);
+    List<InvestmentDTO> getInvestment(String uuid);
+    List<OwnedIpoDTO> getOwnedIpoDTO(String uuid);
 }

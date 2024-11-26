@@ -135,10 +135,6 @@ public class WebSocketManager {
         }
     }
 
-    private long calculateBackoff(int retryCount) {
-        return Math.min(initialDelay * (1L << (retryCount - 1)), 30000);
-    }
-
     private void sleep(long millis) {
         try {
             Thread.sleep(millis);
@@ -146,4 +142,9 @@ public class WebSocketManager {
             Thread.currentThread().interrupt();
         }
     }
+
+    private long calculateBackoff(int retryCount) {
+        return Math.min(initialDelay * (1L << (retryCount - 1)), 30000);
+    }
+
 }
