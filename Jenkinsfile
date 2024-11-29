@@ -11,7 +11,6 @@ pipeline {
         KUBE_CONFIG = credentials('eks-kubeconfig')
         GIT_CREDENTIALS = credentials('github-token')
         AWS_CREDENTIALS = credentials('aws-credentials')
-        CHANGES_DETECTED = 'false'
     }
     
     stages {
@@ -46,33 +45,26 @@ pipeline {
             steps {
                 script {
                     echo "변경사항 감지 검사 시작..."
-                   def hasHistory = sh(script: 'git rev-parse HEAD^1 > /dev/null 2>&1', returnStatus: true) == 0
-            
-            if (hasHistory) {
-                // 이전 커밋이 있는 경우
-                def changes = sh(script: '''
-                    git fetch origin
-                    git diff HEAD^1 HEAD --name-only | grep -v k8s/deployment.yaml || true
-                ''', returnStdout: true).trim()
-                
-                if (!changes) {
-                    echo "k8s/deployment.yaml 외 변경된 파일이 없습니다."
-                    if (env.FORCE_BUILD != 'true') {
-                        error "No relevant changes detected"
-                    }
-                }
-            } else {
-                // 첫 빌드인 경우
-                echo "첫 번째 빌드입니다. 모든 파일을 변경사항으로 간주합니다."
+                    def hasHistory = sh(script: 'git rev-parse HEAD^1 > /dev/null 2>&1', returnStatus: true) == 0
+                    
+                    if (hasHistory) {
+                        def changes = sh(script: '''
+                            git fetch origin
+                            git diff HEAD^1 HEAD --name-only | grep -v k8s/deployment.yaml || true
+                        ''', returnStdout: true).trim()
+                        
+                        if (!changes) {
+                            echo "k8s/deployment.yaml 외 변경된 파일이 없습니다."
+                            echo "WARNING: No relevant changes detected, but continuing pipeline"
+                        }
+                    } else {
+                        echo "첫 번째 빌드입니다. 모든 파일을 변경사항으로 간주합니다."
                     }
                 }
             }
         }
 
         stage('Check Commit Message') {
-            when {
-                expression { env.CHANGES_DETECTED == 'true' }
-            }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     script {
@@ -90,18 +82,12 @@ pipeline {
         }
 
         stage('Checkout') {
-            when {
-                expression { env.CHANGES_DETECTED == 'true' }
-            }
             steps {
                 checkout scm
             }
         }
 
         stage('Build Spring Boot Application') {
-            when {
-                expression { env.CHANGES_DETECTED == 'true' }
-            }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     script {
@@ -115,9 +101,6 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            when {
-                expression { env.CHANGES_DETECTED == 'true' }
-            }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     script {
@@ -130,9 +113,6 @@ pipeline {
         }
 
         stage('Push to AWS ECR') {
-            when {
-                expression { env.CHANGES_DETECTED == 'true' }
-            }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     withCredentials([[
@@ -154,9 +134,6 @@ pipeline {
         }
 
         stage('Update Kubernetes Manifests') {
-            when {
-                expression { env.CHANGES_DETECTED == 'true' }
-            }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     script {
@@ -199,9 +176,6 @@ EOF
         }
 
         stage('Sync ArgoCD Application') {
-            when {
-                expression { env.CHANGES_DETECTED == 'true' }
-            }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     script {
