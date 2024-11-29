@@ -28,6 +28,8 @@ pipeline {
                             echo "이전 빌드 정리 중..."
                             rm -rf build || true
                             rm -rf .gradle || true
+                            git reset --hard HEAD || true
+                            git clean -fdx || true
                             
                             echo "현재 디스크 사용량:"
                             df -h
@@ -45,45 +47,11 @@ pipeline {
             steps {
                 script {
                     echo "변경사항 감지 검사 시작..."
-                    def hasHistory = sh(script: 'git rev-parse HEAD^1 > /dev/null 2>&1', returnStatus: true) == 0
-                    
-                    if (hasHistory) {
-                        def changes = sh(script: '''
-                            git fetch origin
-                            git diff HEAD^1 HEAD --name-only | grep -v k8s/deployment.yaml || true
-                        ''', returnStdout: true).trim()
-                        
-                        if (!changes) {
-                            echo "k8s/deployment.yaml 외 변경된 파일이 없습니다."
-                            echo "WARNING: No relevant changes detected, but continuing pipeline"
-                        }
-                    } else {
-                        echo "첫 번째 빌드입니다. 모든 파일을 변경사항으로 간주합니다."
-                    }
+                    sh '''
+                        git fetch origin
+                        git diff HEAD^1 HEAD --name-only | grep -v k8s/deployment.yaml || true
+                    '''
                 }
-            }
-        }
-
-        stage('Check Commit Message') {
-            steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    script {
-                        def commitMessage = sh(
-                            script: 'git log -1 --pretty=%B',
-                            returnStdout: true
-                        ).trim()
-                        if (commitMessage.startsWith("Update deployment to version")) {
-                            currentBuild.result = 'ABORTED'
-                            error("배포 업데이트 커밋으로 인한 빌드 스킵")
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Checkout') {
-            steps {
-                checkout scm
             }
         }
 
@@ -105,6 +73,14 @@ pipeline {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     script {
                         sh """
+                            # Dockerfile 생성
+                            cat > Dockerfile << 'EOL'
+FROM openjdk:17-slim
+WORKDIR /app
+COPY build/libs/*.jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]
+EOL
+                            # Docker 빌드
                             docker build -t ${ECR_REPOSITORY}:${DOCKER_TAG} .
                         """
                     }
@@ -141,8 +117,10 @@ pipeline {
                             git config --global user.email "jenkins@example.com"
                             git config --global user.name "Jenkins"
                             
-                            git remote set-url origin https://${GIT_CREDENTIALS_USR}:${GIT_CREDENTIALS_PSW}@github.com/Coconut-Finance-Team/Coconut-Back-App.git
-                            git checkout main
+                            # 변경사항을 스태시하고 브랜치 전환
+                            git stash || true
+                            git checkout main || git checkout -b main
+                            git pull origin main || true
                             
                             mkdir -p k8s
                             cat << EOF > k8s/deployment.yaml
@@ -167,7 +145,7 @@ spec:
 EOF
                             
                             git add k8s/deployment.yaml
-                            git commit -m "Update backend deployment to version ${DOCKER_TAG}"
+                            git commit -m "Update backend deployment to version ${DOCKER_TAG}" || true
                             git push origin main
                         """
                     }
@@ -179,42 +157,30 @@ EOF
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     script {
-               sh """
-                    set -x  # 실행되는 명령어 상세 출력
-                    
-                    echo "Step 1: KUBECONFIG 설정"
-                    export KUBECONFIG=${KUBE_CONFIG}
-                    
-                    echo "Step 2: ArgoCD 서버 설정"
-                    ARGOCD_SERVER="afd51e96d120b4dce86e1aa21fe3316d-787997945.ap-northeast-2.elb.amazonaws.com"
-                    
-                    echo "Step 3: ArgoCD 버전 확인"
-                    argocd version || true
-                    
-                    echo "Step 4: ArgoCD 로그인"
-                    argocd login \${ARGOCD_SERVER} \
-                        --username coconut \
-                        --password coconutkr \
-                        --insecure || exit 1
-                    
-                    echo "Step 5: ArgoCD 컨텍스트 확인"
-                    argocd context list || true
-                    
-                    echo "Step 6: 현재 컨텍스트 확인"
-                    argocd context | grep 'Current' || true
-                    
-                    echo "Step 7: 애플리케이션 목록 확인"
-                    argocd app list || true
-                    
-                    echo "Step 8: 애플리케이션 상태 확인"
-                    argocd app get backend-app || true
-                    
-                    echo "Step 9: 애플리케이션 동기화 시도"
-                    argocd app sync backend-app || exit 1
-                    
-                    echo "Step 10: 애플리케이션 상태 대기"
-                    argocd app wait backend-app --health --timeout 300 || exit 1
-                """
+                        sh """
+                            export KUBECONFIG=${KUBE_CONFIG}
+                            ARGOCD_SERVER="afd51e96d120b4dce86e1aa21fe3316d-787997945.ap-northeast-2.elb.amazonaws.com"
+                            
+                            # ArgoCD 로그인 및 앱 생성 (없는 경우)
+                            argocd login \${ARGOCD_SERVER} \
+                                --username admin \
+                                --password coconutkr \
+                                --insecure
+                            
+                            # 애플리케이션이 없다면 생성
+                            argocd app create backend-app \
+                                --repo https://github.com/Coconut-Finance-Team/Coconut-Back-App.git \
+                                --path k8s \
+                                --dest-server https://kubernetes.default.svc \
+                                --dest-namespace coconut-backend \
+                                --sync-policy auto \
+                                --self-heal \
+                                --auto-prune || true
+                            
+                            # 동기화 및 대기
+                            argocd app sync backend-app
+                            argocd app wait backend-app --health --timeout 300
+                        """
                     }
                 }
             }
