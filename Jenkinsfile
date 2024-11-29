@@ -179,18 +179,26 @@ EOF
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     script {
-                        sh """
-                            export KUBECONFIG=${KUBE_CONFIG}
-                            ARGOCD_SERVER="afd51e96d120b4dce86e1aa21fe3316d-787997945.ap-northeast-2.elb.amazonaws.com"
-                            
-                            argocd login \${ARGOCD_SERVER} \
-                                --username coconut \
-                                --password coconutkr \
-                                --insecure
-                            
-                            argocd app sync backend-app
-                            argocd app wait backend-app --health --timeout 300
-                        """
+                                       sh """
+                    export KUBECONFIG=${KUBE_CONFIG}
+                    ARGOCD_SERVER="afd51e96d120b4dce86e1aa21fe3316d-787997945.ap-northeast-2.elb.amazonaws.com"
+                    
+                    # ArgoCD 로그인
+                    argocd login \${ARGOCD_SERVER} \
+                        --username coconut \
+                        --password coconutkr \
+                        --insecure
+                    
+                    # ArgoCD CLI 컨텍스트 설정
+                    argocd context \${ARGOCD_SERVER}
+                    
+                    # 현재 사용자의 권한 확인
+                    argocd account can-i sync application backend-app
+                    
+                    # 애플리케이션 동기화
+                    argocd app sync backend-app --project default
+                    argocd app wait backend-app --health --timeout 300
+                """
                     }
                 }
             }
