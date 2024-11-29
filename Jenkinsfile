@@ -179,25 +179,41 @@ EOF
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     script {
-                                       sh """
+               sh """
+                    set -x  # 실행되는 명령어 상세 출력
+                    
+                    echo "Step 1: KUBECONFIG 설정"
                     export KUBECONFIG=${KUBE_CONFIG}
+                    
+                    echo "Step 2: ArgoCD 서버 설정"
                     ARGOCD_SERVER="afd51e96d120b4dce86e1aa21fe3316d-787997945.ap-northeast-2.elb.amazonaws.com"
                     
-                    # ArgoCD 로그인
+                    echo "Step 3: ArgoCD 버전 확인"
+                    argocd version || true
+                    
+                    echo "Step 4: ArgoCD 로그인"
                     argocd login \${ARGOCD_SERVER} \
                         --username coconut \
                         --password coconutkr \
-                        --insecure
+                        --insecure || exit 1
                     
-                    # ArgoCD CLI 컨텍스트 설정
-                    argocd context \${ARGOCD_SERVER}
+                    echo "Step 5: ArgoCD 컨텍스트 확인"
+                    argocd context list || true
                     
-                    # 현재 사용자의 권한 확인
-                    argocd account can-i sync application backend-app
+                    echo "Step 6: 현재 컨텍스트 확인"
+                    argocd context | grep 'Current' || true
                     
-                    # 애플리케이션 동기화
-                    argocd app sync backend-app --project default
-                    argocd app wait backend-app --health --timeout 300
+                    echo "Step 7: 애플리케이션 목록 확인"
+                    argocd app list || true
+                    
+                    echo "Step 8: 애플리케이션 상태 확인"
+                    argocd app get backend-app || true
+                    
+                    echo "Step 9: 애플리케이션 동기화 시도"
+                    argocd app sync backend-app || exit 1
+                    
+                    echo "Step 10: 애플리케이션 상태 대기"
+                    argocd app wait backend-app --health --timeout 300 || exit 1
                 """
                     }
                 }
