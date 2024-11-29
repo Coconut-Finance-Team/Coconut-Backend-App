@@ -8,7 +8,6 @@ pipeline {
     environment {
         ECR_REPOSITORY = "castlehoo/backend"
         DOCKER_TAG = "${BUILD_NUMBER}"
-        ARGOCD_CREDENTIALS = credentials('argocd-token')
         KUBE_CONFIG = credentials('eks-kubeconfig')
         GIT_CREDENTIALS = credentials('github-token')
         AWS_CREDENTIALS = credentials('aws-credentials')
@@ -16,6 +15,33 @@ pipeline {
     }
     
     stages {
+        stage('Cleanup Workspace') {
+            steps {
+                script {
+                    try {
+                        echo "시스템 클린업 시작..."
+                        sh '''
+                            echo "Docker 시스템 정리 중..."
+                            docker system prune -af || true
+                            docker volume prune -f || true
+                            docker network prune -f || true
+                            
+                            echo "이전 빌드 정리 중..."
+                            rm -rf build || true
+                            rm -rf .gradle || true
+                            
+                            echo "현재 디스크 사용량:"
+                            df -h
+                            echo "Docker 디스크 사용량:"
+                            docker system df
+                        '''
+                    } catch (Exception e) {
+                        echo "클린업 중 오류 발생: ${e.message}"
+                    }
+                }
+            }
+        }
+
         stage('Check for Changes') {
             steps {
                 script {
@@ -179,14 +205,12 @@ EOF
                             ARGOCD_SERVER="afd51e96d120b4dce86e1aa21fe3316d-787997945.ap-northeast-2.elb.amazonaws.com"
                             
                             argocd login \${ARGOCD_SERVER} \
-                                --core \
-                                --auth-token ${ARGOCD_CREDENTIALS} \
-                                --grpc-web \
-                                --insecure \
-                                --plaintext
+                                --username coconut \
+                                --password coconutkr \
+                                --insecure
                             
                             argocd app sync backend-app
-                            argocd app wait backend-app --sync --health --timeout 300
+                            argocd app wait backend-app --health --timeout 300
                         """
                     }
                 }
@@ -196,8 +220,37 @@ EOF
 
     post {
         always {
-            sh 'docker logout'
-            sh 'rm -f ${KUBE_CONFIG}'
+            script {
+                echo "파이프라인 정리 작업 시작"
+                try {
+                    sh '''
+                        echo "Docker 로그아웃..."
+                        docker logout
+                        
+                        echo "임시 파일 정리..."
+                        rm -f ${KUBE_CONFIG}
+                        
+                        echo "작업 디렉토리 정리..."
+                        rm -rf build .gradle
+                        
+                        echo "Docker 이미지 정리..."
+                        docker system prune -af || true
+                    '''
+                } catch (Exception e) {
+                    echo "정리 작업 중 오류 발생: ${e.message}"
+                }
+                echo "정리 작업 완료"
+            }
+        }
+        failure {
+            script {
+                echo '파이프라인 실패! 로그를 확인하세요.'
+            }
+        }
+        success {
+            script {
+                echo '파이프라인이 성공적으로 완료되었습니다!'
+            }
         }
     }
 }
