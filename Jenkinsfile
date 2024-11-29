@@ -11,6 +11,7 @@ pipeline {
         KUBE_CONFIG = credentials('eks-kubeconfig')
         GIT_CREDENTIALS = credentials('github-token')
         AWS_CREDENTIALS = credentials('aws-credentials')
+        ECR_URL = "992382629018.dkr.ecr.ap-northeast-2.amazonaws.com"
     }
     
     stages {
@@ -28,8 +29,6 @@ pipeline {
                             echo "이전 빌드 정리 중..."
                             rm -rf build || true
                             rm -rf .gradle || true
-                            git reset --hard HEAD || true
-                            git clean -fdx || true
                             
                             echo "현재 디스크 사용량:"
                             df -h
@@ -39,18 +38,6 @@ pipeline {
                     } catch (Exception e) {
                         echo "클린업 중 오류 발생: ${e.message}"
                     }
-                }
-            }
-        }
-
-        stage('Check for Changes') {
-            steps {
-                script {
-                    echo "변경사항 감지 검사 시작..."
-                    sh '''
-                        git fetch origin
-                        git diff HEAD^1 HEAD --name-only | grep -v k8s/deployment.yaml || true
-                    '''
                 }
             }
         }
@@ -68,27 +55,7 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    script {
-                        sh """
-                            # Dockerfile 생성
-                            cat > Dockerfile << 'EOL'
-FROM openjdk:17-slim
-WORKDIR /app
-COPY build/libs/*.jar app.jar
-ENTRYPOINT ["java", "-jar", "app.jar"]
-EOL
-                            # Docker 빌드
-                            docker build -t ${ECR_REPOSITORY}:${DOCKER_TAG} .
-                        """
-                    }
-                }
-            }
-        }
-
-        stage('Push to AWS ECR') {
+        stage('Build and Push Docker Image') {
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     withCredentials([[
@@ -98,10 +65,16 @@ EOL
                         secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                     ]]) {
                         script {
+                            def FULL_IMAGE_NAME = "${ECR_URL}/${ECR_REPOSITORY}"
+                            
                             sh """
-                                aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com
-                                docker tag ${ECR_REPOSITORY}:${DOCKER_TAG} 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPOSITORY}:${DOCKER_TAG}
-                                docker push 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPOSITORY}:${DOCKER_TAG}
+                                # Docker 빌드
+                                docker build -t ${ECR_REPOSITORY}:${DOCKER_TAG} .
+                                
+                                # ECR 로그인 및 푸시
+                                aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${ECR_URL}
+                                docker tag ${ECR_REPOSITORY}:${DOCKER_TAG} ${FULL_IMAGE_NAME}:${DOCKER_TAG}
+                                docker push ${FULL_IMAGE_NAME}:${DOCKER_TAG}
                             """
                         }
                     }
@@ -109,7 +82,7 @@ EOL
             }
         }
 
-        stage('Update Kubernetes Manifests') {
+        stage('Update Image Tag') {
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     script {
@@ -117,33 +90,10 @@ EOL
                             git config --global user.email "jenkins@example.com"
                             git config --global user.name "Jenkins"
                             
-                            # 변경사항을 스태시하고 브랜치 전환
-                            git stash || true
-                            git checkout main || git checkout -b main
-                            git pull origin main || true
+                            # deployment.yaml의 이미지 태그 업데이트
+                            sed -i 's|image: ${ECR_URL}/${ECR_REPOSITORY}:.*|image: ${ECR_URL}/${ECR_REPOSITORY}:${DOCKER_TAG}|' k8s/deployment.yaml
                             
-                            mkdir -p k8s
-                            cat << EOF > k8s/deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: backend-deployment
-  namespace: coconut-backend
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: backend
-  template:
-    metadata:
-      labels:
-        app: backend
-    spec:
-      containers:
-      - name: backend
-        image: 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPOSITORY}:${DOCKER_TAG}
-EOF
-                            
+                            # 변경사항 커밋 및 푸시
                             git add k8s/deployment.yaml
                             git commit -m "Update backend deployment to version ${DOCKER_TAG}" || true
                             git push origin main
@@ -161,25 +111,15 @@ EOF
                             export KUBECONFIG=${KUBE_CONFIG}
                             ARGOCD_SERVER="afd51e96d120b4dce86e1aa21fe3316d-787997945.ap-northeast-2.elb.amazonaws.com"
                             
-                            # ArgoCD 로그인 및 앱 생성 (없는 경우)
+                            # ArgoCD 로그인
                             argocd login \${ARGOCD_SERVER} \
-                                --username admin \
+                                --username coconut \
                                 --password coconutkr \
                                 --insecure
                             
-                            # 애플리케이션이 없다면 생성
-                            argocd app create backend-app \
-                                --repo https://github.com/Coconut-Finance-Team/Coconut-Back-App.git \
-                                --path k8s \
-                                --dest-server https://kubernetes.default.svc \
-                                --dest-namespace coconut-backend \
-                                --sync-policy auto \
-                                --self-heal \
-                                --auto-prune || true
-                            
                             # 동기화 및 대기
-                            argocd app sync backend-app
-                            argocd app wait backend-app --health --timeout 300
+                            argocd app sync backend-app || true
+                            argocd app wait backend-app --health --timeout 300 || true
                         """
                     }
                 }
