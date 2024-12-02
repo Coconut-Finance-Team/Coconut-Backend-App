@@ -11,7 +11,7 @@ pipeline {
         DOCKER_TAG = "${BUILD_NUMBER}"
         ARGOCD_CREDENTIALS = credentials('argocd-token')
         KUBE_CONFIG = credentials('eks-kubeconfig')
-        GIT_CREDENTIALS = credentials('github-token')
+        GIT_CREDENTIALS = credentials('github-token-2')
         AWS_CREDENTIALS = credentials('aws-credentials')
     }
     
@@ -74,7 +74,7 @@ pipeline {
                             checkout([
                                 $class: 'GitSCM',
                                 branches: [[name: '*/test']],
-                                userRemoteConfigs: [[url: 'https://github.com/Coconut-Finance-Team/Coconut-Backend-App.git', credentialsId: 'github-token']]
+                                userRemoteConfigs: [[url: 'https://github.com/Coconut-Finance-Team/Coconut-Backend-App.git', credentialsId: 'github-token-2']]
                             ])
                         }
                         echo "소스 코드 체크아웃 완료"
@@ -180,7 +180,7 @@ pipeline {
                 script {
                     try {
                         echo "단계: Kubernetes 매니페스트 업데이트 시작"
-                        withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                        withCredentials([usernamePassword(credentialsId: 'github-token-2', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                             sh """
                                 set -x
                                 echo "Git 저장소 업데이트..."
