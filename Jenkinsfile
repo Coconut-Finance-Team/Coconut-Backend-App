@@ -189,7 +189,7 @@ stage('Update Kubernetes Manifests') {
                         echo "Git 저장소 다시 클론..."
                         rm -rf .git
                         git init
-                        git remote add origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Coconut-Finance-Team/Coconut-Back-App.git
+                        git remote add origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Coconut-Finance-Team/Coconut-Backend-App.git
                         git fetch origin
                         git checkout -B main origin/main
                         
