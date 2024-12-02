@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/castlehoo/backend:26
+        image: 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/castlehoo/backend:27
         ports:
         - containerPort: 8080
         resources:
