@@ -4,7 +4,10 @@ WORKDIR /app
 
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
-# 빌드된 jar 파일을 직접 지정
-COPY build/libs/stock_app-0.0.1-SNAPSHOT.jar app.jar
+# 디렉토리에 끝에 / 추가
+COPY build/libs/*.jar /app/
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# jar 파일 이름을 app.jar로 변경
+RUN mv /app/*.jar /app/app.jar
+
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
