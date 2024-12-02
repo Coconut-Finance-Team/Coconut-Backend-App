@@ -179,33 +179,22 @@ stage('Update Kubernetes Manifests') {
                 withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                     sh """
                         set -x
-                        echo "Git 상태 확인..."
-                        git status
+                        echo "작업 디렉토리 초기화..."
+                        # 모든 파일 삭제 (숨김 파일 포함)
+                        rm -rf .* * || true
                         
-                        echo "현재 작업 디렉토리 확인..."
-                        pwd
-                        ls -la
+                        echo "Git 저장소 클론..."
+                        git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Coconut-Finance-Team/Coconut-Backend-App.git .
                         
-                        echo "Git 저장소 다시 클론..."
-                        rm -rf .git
-                        git init
-                        git remote add origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Coconut-Finance-Team/Coconut-Backend-App.git
-                        git fetch origin
-                        git checkout -B main origin/main
-                        
-                        echo "체크아웃 후 디렉토리 확인..."
-                        ls -la
-                        ls -la k8s/ || echo "k8s 디렉토리가 없습니다"
+                        echo "main 브랜치로 전환..."
+                        git checkout main
                         
                         echo "deployment.yaml 수정..."
                         sed -i 's|image:.*|image: 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPOSITORY}:${DOCKER_TAG}|' k8s/deployment.yaml
                         
-                        echo "Git 변경 사항 확인..."
-                        git diff
-                        
                         echo "Git 설정..."
-                        git config --global user.email "jenkins@castlehoo.com"
-                        git config --global user.name "Jenkins"
+                        git config user.email "jenkins@castlehoo.com"
+                        git config user.name "Jenkins"
                         
                         echo "변경 사항 커밋..."
                         git add k8s/deployment.yaml
