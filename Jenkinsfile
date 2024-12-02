@@ -12,6 +12,8 @@ pipeline {
         GIT_CREDENTIALS = credentials('github-token')
         AWS_CREDENTIALS = credentials('aws-credentials')
         ECR_URL = "992382629018.dkr.ecr.ap-northeast-2.amazonaws.com"
+        AWS_REGION = "ap-northeast-2"
+        ARGOCD_SERVER = "aebaac6a687b24f28ad8311739898b12-2096717322.ap-northeast-2.elb.amazonaws.com"
     }
     
     stages {
@@ -44,12 +46,14 @@ pipeline {
 
         stage('Build Spring Boot Application') {
             steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    script {
-                        sh '''
-                            chmod +x ./gradlew
-                            ./gradlew clean build -x test
-                        '''
+                timeout(time: 10, unit: 'MINUTES') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                        script {
+                            sh '''
+                                chmod +x ./gradlew
+                                ./gradlew clean build -x test
+                            '''
+                        }
                     }
                 }
             }
@@ -72,7 +76,7 @@ pipeline {
                                 docker build -t ${ECR_REPOSITORY}:${DOCKER_TAG} .
                                 
                                 # ECR 로그인 및 푸시
-                                aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${ECR_URL}
+                                aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URL}
                                 docker tag ${ECR_REPOSITORY}:${DOCKER_TAG} ${FULL_IMAGE_NAME}:${DOCKER_TAG}
                                 docker push ${FULL_IMAGE_NAME}:${DOCKER_TAG}
                             """
@@ -85,19 +89,27 @@ pipeline {
         stage('Update Image Tag') {
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    script {
-                        sh """
-                            git config --global user.email "jenkins@example.com"
-                            git config --global user.name "Jenkins"
-                            
-                            # deployment.yaml의 이미지 태그 업데이트
-                            sed -i 's|image: ${ECR_URL}/${ECR_REPOSITORY}:.*|image: ${ECR_URL}/${ECR_REPOSITORY}:${DOCKER_TAG}|' k8s/deployment.yaml
-                            
-                            # 변경사항 커밋 및 푸시
-                            git add k8s/deployment.yaml
-                            git commit -m "Update backend deployment to version ${DOCKER_TAG}" || true
-                            git push origin main
-                        """
+                    withCredentials([usernamePassword(
+                        credentialsId: 'github-token',
+                        usernameVariable: 'GIT_USERNAME',
+                        passwordVariable: 'GIT_PASSWORD'
+                    )]) {
+                        script {
+                            sh """
+                                git config --global user.email "jenkins@castlehoo.com"
+                                git config --global user.name "Jenkins"
+                                
+                                git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Coconut-Finance-Team/Coconut-Back-App.git
+                                
+                                # deployment.yaml의 이미지 태그 업데이트
+                                sed -i 's|image: ${ECR_URL}/${ECR_REPOSITORY}:.*|image: ${ECR_URL}/${ECR_REPOSITORY}:${DOCKER_TAG}|' k8s/deployment.yaml
+                                
+                                # 변경사항 커밋 및 푸시
+                                git add k8s/deployment.yaml
+                                git commit -m "Update backend deployment to version ${DOCKER_TAG}"
+                                git push origin main
+                            """
+                        }
                     }
                 }
             }
@@ -105,22 +117,23 @@ pipeline {
 
         stage('Sync ArgoCD Application') {
             steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    script {
-                        sh """
-                            export KUBECONFIG=${KUBE_CONFIG}
-                            ARGOCD_SERVER="afd51e96d120b4dce86e1aa21fe3316d-787997945.ap-northeast-2.elb.amazonaws.com"
-                            
-                            # ArgoCD 로그인
-                            argocd login \${ARGOCD_SERVER} \
-                                --username coconut \
-                                --password coconutkr \
-                                --insecure
-                            
-                            # 동기화 및 대기
-                            argocd app sync backend-app || true
-                            argocd app wait backend-app --health --timeout 300 || true
-                        """
+                timeout(time: 10, unit: 'MINUTES') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                        script {
+                            sh """
+                                export KUBECONFIG=${KUBE_CONFIG}
+                                
+                                # ArgoCD 로그인
+                                argocd login \${ARGOCD_SERVER} \
+                                    --username coconut \
+                                    --password twinho3230 \
+                                    --insecure --grpc-web
+                                
+                                # 동기화 및 대기
+                                argocd app sync backend-app --grpc-web
+                                argocd app wait backend-app --health --timeout 300 --grpc-web
+                            """
+                        }
                     }
                 }
             }
