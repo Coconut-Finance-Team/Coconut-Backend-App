@@ -180,14 +180,13 @@ stage('Update Kubernetes Manifests') {
                     sh """
                         set -x
                         echo "작업 디렉토리 초기화..."
-                        # 모든 파일 삭제 (숨김 파일 포함)
-                        rm -rf .* * || true
+                        # 기존 git 정보 유지하면서 작업
+                        git fetch origin
+                        git reset --hard origin/main
                         
-                        echo "Git 저장소 클론..."
-                        git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Coconut-Finance-Team/Coconut-Backend-App.git .
-                        
-                        echo "main 브랜치로 전환..."
-                        git checkout main
+                        echo "현재 디렉토리 구조 확인..."
+                        ls -la
+                        ls -la k8s/
                         
                         echo "deployment.yaml 수정..."
                         sed -i 's|image:.*|image: 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPOSITORY}:${DOCKER_TAG}|' k8s/deployment.yaml
@@ -201,6 +200,7 @@ stage('Update Kubernetes Manifests') {
                         git commit -m "Update backend deployment to version ${DOCKER_TAG}" || echo "변경 사항 없음, 스킵"
                         
                         echo "GitHub로 푸시..."
+                        git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Coconut-Finance-Team/Coconut-Backend-App.git
                         git push origin main
                     """
                 }
