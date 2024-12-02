@@ -179,16 +179,23 @@ stage('Update Kubernetes Manifests') {
                 withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                     sh """
                         set -x
-                        echo "작업 디렉토리 초기화..."
-                        git reset --hard HEAD
-                        git clean -fd
+                        echo "Git 상태 확인..."
+                        git status
                         
-                        echo "Git 저장소 업데이트..."
-                        git fetch --all
+                        echo "현재 작업 디렉토리 확인..."
+                        pwd
+                        ls -la
+                        
+                        echo "Git 저장소 다시 클론..."
+                        rm -rf .git
+                        git init
+                        git remote add origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Coconut-Finance-Team/Coconut-Back-App.git
+                        git fetch origin
                         git checkout -B main origin/main
                         
-                        echo "Gradle 권한 재설정..."
-                        chmod +x gradlew
+                        echo "체크아웃 후 디렉토리 확인..."
+                        ls -la
+                        ls -la k8s/ || echo "k8s 디렉토리가 없습니다"
                         
                         echo "deployment.yaml 수정..."
                         sed -i 's|image:.*|image: 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPOSITORY}:${DOCKER_TAG}|' k8s/deployment.yaml
@@ -205,7 +212,6 @@ stage('Update Kubernetes Manifests') {
                         git commit -m "Update backend deployment to version ${DOCKER_TAG}" || echo "변경 사항 없음, 스킵"
                         
                         echo "GitHub로 푸시..."
-                        git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Coconut-Finance-Team/Coconut-Back-App.git
                         git push origin main
                     """
                 }
