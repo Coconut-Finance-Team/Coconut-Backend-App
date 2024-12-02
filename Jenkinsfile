@@ -215,7 +215,7 @@ pipeline {
             }
         }
 
-       stage('Sync ArgoCD Application') {
+stage('Sync ArgoCD Application') {
     steps {
         script {
             try {
@@ -242,14 +242,14 @@ pipeline {
                             --grpc-web \
                             --upsert
 
-                        echo "backend-app 상태 확인..."
-                        argocd app get backend-app --grpc-web || true
+                        echo "coconut-backend 상태 확인..."
+                        argocd app get coconut-backend --grpc-web || true
                         
-                        echo "backend-app 동기화 중..."
-                        argocd app sync backend-app --grpc-web
+                        echo "coconut-backend 동기화 중..."
+                        argocd app sync coconut-backend --grpc-web
                         
-                        echo "backend-app 상태 대기 중..."
-                        argocd app wait backend-app --health --timeout 300 --grpc-web
+                        echo "coconut-backend 상태 대기 중..."
+                        argocd app wait coconut-backend --health --timeout 300 --grpc-web
                     """
                 }
                 echo "ArgoCD 동기화 완료"
