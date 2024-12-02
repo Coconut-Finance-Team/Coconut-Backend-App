@@ -238,20 +238,23 @@ stage('Sync ArgoCD Application') {
                         kubectl version --client
                         argocd version --client
                         
+                        echo "ArgoCD 서버 주소 확인..."
+                        ARGOCD_SERVER="aebaac6a687b24f28ad8311739898b12-2096717322.ap-northeast-2.elb.amazonaws.com"
+                        
                         echo "ArgoCD 로그인..."
-                        argocd login \${ARGOCD_SERVER} \
+                        argocd login \$ARGOCD_SERVER \
                             --username \$ARGOCD_USERNAME \
                             --password \$ARGOCD_PASSWORD \
                             --insecure \
                             --grpc-web
                         
-                        echo "애플리케이션 동기화 중..."
+                        echo "backend-app 동기화 중..."
                         argocd app sync backend-app --grpc-web
                         
-                        echo "애플리케이션 상태 대기 중..."
+                        echo "backend-app 상태 대기 중..."
                         argocd app wait backend-app --health --timeout 300 --grpc-web
                         
-                        echo "최종 애플리케이션 상태 확인..."
+                        echo "backend-app 상태 확인..."
                         argocd app get backend-app --grpc-web
                     """
                 }
