@@ -171,45 +171,51 @@ pipeline {
             }
         }
 
-        stage('Update Kubernetes Manifests') {
-            steps {
-                script {
-                    try {
-                        echo "단계: Kubernetes 매니페스트 업데이트 시작"
-                        withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                            sh """
-                                set -x
-                                echo "Git 저장소 업데이트..."
-                                git fetch --all
-                                git checkout -B main origin/main
-                                git reset --hard origin/main
-                                
-                                echo "deployment.yaml 수정..."
-                                sed -i 's|image:.*|image: 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPOSITORY}:${DOCKER_TAG}|' k8s/deployment.yaml
-                                
-                                echo "Git 변경 사항 확인..."
-                                git diff
-                                
-                                echo "Git 설정..."
-                                git config --global user.email "jenkins@castlehoo.com"
-                                git config --global user.name "Jenkins"
-                                
-                                echo "변경 사항 커밋..."
-                                git add k8s/deployment.yaml
-                                git commit -m "Update backend deployment to version ${DOCKER_TAG}" || echo "변경 사항 없음, 스킵"
-                                
-                                echo "GitHub로 푸시..."
-                                git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Coconut-Finance-Team/Coconut-Back-App.git
-                                git push origin main
-                            """
-                        }
-                        echo "Kubernetes 매니페스트 업데이트 완료"
-                    } catch (Exception e) {
-                        error("Kubernetes 매니페스트 업데이트 중 오류 발생: ${e.message}")
-                    }
+stage('Update Kubernetes Manifests') {
+    steps {
+        script {
+            try {
+                echo "단계: Kubernetes 매니페스트 업데이트 시작"
+                withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                    sh """
+                        set -x
+                        echo "작업 디렉토리 초기화..."
+                        git reset --hard HEAD
+                        git clean -fd
+                        
+                        echo "Git 저장소 업데이트..."
+                        git fetch --all
+                        git checkout -B main origin/main
+                        
+                        echo "Gradle 권한 재설정..."
+                        chmod +x gradlew
+                        
+                        echo "deployment.yaml 수정..."
+                        sed -i 's|image:.*|image: 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPOSITORY}:${DOCKER_TAG}|' k8s/deployment.yaml
+                        
+                        echo "Git 변경 사항 확인..."
+                        git diff
+                        
+                        echo "Git 설정..."
+                        git config --global user.email "jenkins@castlehoo.com"
+                        git config --global user.name "Jenkins"
+                        
+                        echo "변경 사항 커밋..."
+                        git add k8s/deployment.yaml
+                        git commit -m "Update backend deployment to version ${DOCKER_TAG}" || echo "변경 사항 없음, 스킵"
+                        
+                        echo "GitHub로 푸시..."
+                        git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Coconut-Finance-Team/Coconut-Back-App.git
+                        git push origin main
+                    """
                 }
+                echo "Kubernetes 매니페스트 업데이트 완료"
+            } catch (Exception e) {
+                error("Kubernetes 매니페스트 업데이트 중 오류 발생: ${e.message}")
             }
         }
+    }
+}
 
         stage('Sync ArgoCD Application') {
             steps {
