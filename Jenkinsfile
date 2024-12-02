@@ -7,7 +7,8 @@ pipeline {
         IMAGE_REPO_NAME = "castlehoo/backend"
         IMAGE_TAG = "1"
         REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}"
-        AWS_CREDENTIALS = credentials('aws-credentials')  // Jenkins credentials ID
+        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
     }
 
     stages {
@@ -39,18 +40,6 @@ pipeline {
             }
         }
 
-        stage('Check JAR') {
-            steps {
-                script {
-                    try {
-                        sh 'ls -l build/libs/'
-                    } catch (Exception e) {
-                        error "JAR check failed: ${e.message}"
-                    }
-                }
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
@@ -67,8 +56,14 @@ pipeline {
             steps {
                 script {
                     try {
-                        withAWS(credentials: 'aws-credentials', region: "${AWS_DEFAULT_REGION}") {
+                        withCredentials([
+                            string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                            string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
+                        ]) {
                             sh """
+                                aws configure set aws_access_key_id \${AWS_ACCESS_KEY_ID}
+                                aws configure set aws_secret_access_key \${AWS_SECRET_ACCESS_KEY}
+                                aws configure set default.region ${AWS_DEFAULT_REGION}
                                 aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
                                 docker push ${REPOSITORY_URI}:${IMAGE_TAG}
                             """
