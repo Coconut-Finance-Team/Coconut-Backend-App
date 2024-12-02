@@ -215,48 +215,50 @@ pipeline {
             }
         }
 
-        stage('Sync ArgoCD Application') {
-            steps {
-                script {
-                    try {
-                        echo "단계: ArgoCD 동기화 시작"
+       stage('Sync ArgoCD Application') {
+    steps {
+        script {
+            try {
+                echo "단계: ArgoCD 동기화 시작"
+                
+                withCredentials([usernamePassword(credentialsId: 'github-token-2', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                    sh """
+                        export PATH=\$PATH:/var/lib/jenkins/bin:/usr/local/bin
+                        
+                        echo "ArgoCD 서버 주소 확인..."
+                        ARGOCD_SERVER="aebaac6a687b24f28ad8311739898b12-2096717322.ap-northeast-2.elb.amazonaws.com"
+                        
+                        echo "ArgoCD 로그인..."
+                        argocd login \$ARGOCD_SERVER \
+                            --username coconut \
+                            --password twinho3230 \
+                            --insecure \
+                            --grpc-web
+                        
+                        echo "Git 리포지토리 인증 정보 ArgoCD에 추가..."
+                        argocd repo add https://github.com/Coconut-Finance-Team/Coconut-Backend-App.git \
+                            --username \$GIT_USERNAME \
+                            --password \$GIT_PASSWORD \
+                            --grpc-web \
+                            --upsert
 
-                        sh """
-                            export PATH=\$PATH:/var/lib/jenkins/bin:/usr/local/bin
-                            
-                            echo "ArgoCD 서버 주소 확인..."
-                            ARGOCD_SERVER="aebaac6a687b24f28ad8311739898b12-2096717322.ap-northeast-2.elb.amazonaws.com"
-                            
-                            echo "ArgoCD 로그인..."
-                            argocd login \$ARGOCD_SERVER \
-                                --username coconut \
-                                --password twinho3230 \
-                                --insecure \
-                                --grpc-web
-                            
-                            echo "Git 리포지토리 인증 정보 ArgoCD에 추가..."
-                            argocd repo add https://github.com/Coconut-Finance-Team/Coconut-Backend-App.git \
-                                --username coconut \
-                                --password twinho3230 \
-                                --grpc-web \
-                                --upsert
-
-                            echo "backend-app 상태 확인..."
-                            argocd app get backend-app --grpc-web || true
-                            
-                            echo "backend-app 동기화 중..."
-                            argocd app sync backend-app --grpc-web
-                            
-                            echo "backend-app 상태 대기 중..."
-                            argocd app wait backend-app --health --timeout 300 --grpc-web
-                        """
-                        echo "ArgoCD 동기화 완료"
-                    } catch (Exception e) {
-                        error("ArgoCD 동기화 중 오류 발생: ${e.message}")
-                    }
+                        echo "backend-app 상태 확인..."
+                        argocd app get backend-app --grpc-web || true
+                        
+                        echo "backend-app 동기화 중..."
+                        argocd app sync backend-app --grpc-web
+                        
+                        echo "backend-app 상태 대기 중..."
+                        argocd app wait backend-app --health --timeout 300 --grpc-web
+                    """
                 }
+                echo "ArgoCD 동기화 완료"
+            } catch (Exception e) {
+                error("ArgoCD 동기화 중 오류 발생: ${e.message}")
             }
         }
+    }
+}
     }
 
     post {
