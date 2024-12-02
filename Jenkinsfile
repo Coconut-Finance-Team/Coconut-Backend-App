@@ -9,7 +9,7 @@ pipeline {
     environment {
         ECR_REPOSITORY = "castlehoo/backend"
         DOCKER_TAG = "${BUILD_NUMBER}"
-        ARGOCD_CREDENTIALS = credentials('argocd-token')
+        ARGOCD_CREDENTIALS = credentials('argocd-credentials')
         KUBE_CONFIG = credentials('eks-kubeconfig')
         GIT_CREDENTIALS = credentials('github-token-2')
         AWS_CREDENTIALS = credentials('aws-credentials')
