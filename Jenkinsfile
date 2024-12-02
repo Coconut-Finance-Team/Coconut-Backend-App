@@ -216,55 +216,54 @@ pipeline {
             }
         }
 
-stage('Sync ArgoCD Application') {
-    steps {
-        script {
-            try {
-                echo "단계: ArgoCD 동기화 시작"
-                
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'argocd-credentials',
-                        usernameVariable: 'ARGOCD_USERNAME',
-                        passwordVariable: 'ARGOCD_PASSWORD'
-                    )
-                ]) {
-                    sh """
-                        export PATH=\$PATH:/var/lib/jenkins/bin:/usr/local/bin
-                        
-                        echo "설치된 도구 확인..."
-                        which kubectl
-                        which argocd
-                        kubectl version --client
-                        argocd version --client
-                        
-                        echo "ArgoCD 서버 주소 확인..."
-                        ARGOCD_SERVER="aebaac6a687b24f28ad8311739898b12-2096717322.ap-northeast-2.elb.amazonaws.com"
-                        
-                        echo "ArgoCD 로그인..."
-                        argocd login \$ARGOCD_SERVER \
-                            --username \$ARGOCD_USERNAME \
-                            --password \$ARGOCD_PASSWORD \
-                            --insecure \
-                            --grpc-web
-                        
-                        echo "backend-app 동기화 중..."
-                        argocd app sync backend-app --grpc-web
-                        
-                        echo "backend-app 상태 대기 중..."
-                        argocd app wait backend-app --health --timeout 300 --grpc-web
-                        
-                        echo "backend-app 상태 확인..."
-                        argocd app get backend-app --grpc-web
-                    """
+        stage('Sync ArgoCD Application') {
+            steps {
+                script {
+                    try {
+                        echo "단계: ArgoCD 동기화 시작"
+
+                        withCredentials([
+                            usernamePassword(
+                                credentialsId: 'argocd-credentials',  // 여기서 argocd-credentials 사용
+                                usernameVariable: 'ARGOCD_USERNAME',
+                                passwordVariable: 'ARGOCD_PASSWORD'
+                            )
+                        ]) {
+                            sh """
+                                export PATH=\$PATH:/var/lib/jenkins/bin:/usr/local/bin
+                                
+                                echo "설치된 도구 확인..."
+                                which kubectl
+                                which argocd
+                                kubectl version --client
+                                argocd version --client
+                                
+                                echo "ArgoCD 서버 주소 확인..."
+                                ARGOCD_SERVER="aebaac6a687b24f28ad8311739898b12-2096717322.ap-northeast-2.elb.amazonaws.com"
+                                
+                                echo "ArgoCD 로그인..."
+                                argocd login \$ARGOCD_SERVER \
+                                    --username \$ARGOCD_USERNAME \
+                                    --password \$ARGOCD_PASSWORD \
+                                    --insecure
+                                
+                                echo "backend-app 동기화 중..."
+                                argocd app sync backend-app --grpc-web
+                                
+                                echo "backend-app 상태 대기 중..."
+                                argocd app wait backend-app --health --timeout 300 --grpc-web
+                                
+                                echo "backend-app 상태 확인..."
+                                argocd app get backend-app --grpc-web
+                            """
+                        }
+                        echo "ArgoCD 동기화 완료"
+                    } catch (Exception e) {
+                        error("ArgoCD 동기화 중 오류 발생: ${e.message}")
+                    }
                 }
-                echo "ArgoCD 동기화 완료"
-            } catch (Exception e) {
-                error("ArgoCD 동기화 중 오류 발생: ${e.message}")
             }
         }
-    }
-}
     }
 
     post {
