@@ -181,8 +181,8 @@ stage('Update Kubernetes Manifests') {
                                 set -x
                                 echo "Git 저장소 업데이트..."
                                 git fetch --all
-                                git checkout -B main origin/main
-                                git reset --hard origin/main
+                                git checkout -B test origin/test
+                                git reset --hard origin/test
                                 
                                 echo "deployment.yaml 수정..."
                                 sed -i 's|image:.*|image: 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPOSITORY}:${DOCKER_TAG}|' k8s/deployment.yaml
@@ -200,7 +200,7 @@ stage('Update Kubernetes Manifests') {
                                 
                                 echo "GitHub로 푸시..."
                                 git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Coconut-Finance-Team/Coconut-Back-App.git
-                                git push origin main
+                                git push origin test
                             """
                         }
                         echo "Kubernetes 매니페스트 업데이트 완료"
