@@ -7,6 +7,7 @@ pipeline {
         IMAGE_REPO_NAME = "castlehoo/backend"
         IMAGE_TAG = "1"
         REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}"
+        AWS_CREDENTIALS = credentials('aws-credentials')  // Jenkins credentials ID
     }
 
     stages {
@@ -66,10 +67,12 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh """
-                            aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
-                            docker push ${REPOSITORY_URI}:${IMAGE_TAG}
-                        """
+                        withAWS(credentials: 'aws-credentials', region: "${AWS_DEFAULT_REGION}") {
+                            sh """
+                                aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
+                                docker push ${REPOSITORY_URI}:${IMAGE_TAG}
+                            """
+                        }
                     } catch (Exception e) {
                         error "Docker push failed: ${e.message}"
                     }
