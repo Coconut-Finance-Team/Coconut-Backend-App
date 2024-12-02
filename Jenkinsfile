@@ -71,7 +71,11 @@ pipeline {
                     script {
                         echo "단계: 소스 코드 체크아웃 시작"
                         retry(3) {
-                            checkout scm
+                            checkout([
+                                $class: 'GitSCM',
+                                branches: [[name: '*/test']],
+                                userRemoteConfigs: [[url: 'https://github.com/Coconut-Finance-Team/Coconut-Back-App.git', credentialsId: 'github-token']]
+                            ])
                         }
                         echo "소스 코드 체크아웃 완료"
                     }
@@ -171,7 +175,7 @@ pipeline {
             }
         }
 
-stage('Update Kubernetes Manifests') {
+        stage('Update Kubernetes Manifests') {
             steps {
                 script {
                     try {
@@ -181,6 +185,7 @@ stage('Update Kubernetes Manifests') {
                                 set -x
                                 echo "Git 저장소 업데이트..."
                                 git fetch --all
+                                git stash
                                 git checkout -B test origin/test
                                 git reset --hard origin/test
                                 
@@ -199,7 +204,7 @@ stage('Update Kubernetes Manifests') {
                                 git commit -m "Update frontend deployment to version ${DOCKER_TAG}" || echo "변경 사항 없음, 스킵"
                                 
                                 echo "GitHub로 푸시..."
-                                git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Coconut-Finance-Team/Coconut-Back-App.git
+                                git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/Coconut-Finance-Team/Coconut-Backend-App.git
                                 git push origin test
                             """
                         }
