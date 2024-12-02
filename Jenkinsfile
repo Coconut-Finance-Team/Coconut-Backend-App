@@ -7,8 +7,6 @@ pipeline {
         IMAGE_REPO_NAME = "castlehoo/backend"
         IMAGE_TAG = "1"
         REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}"
-        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
-        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
     }
 
     stages {
@@ -57,8 +55,9 @@ pipeline {
                 script {
                     try {
                         withCredentials([
-                            string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
-                            string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
+                            usernamePassword(credentialsId: 'aws-credentials', 
+                                          usernameVariable: 'AWS_ACCESS_KEY_ID', 
+                                          passwordVariable: 'AWS_SECRET_ACCESS_KEY')
                         ]) {
                             sh """
                                 aws configure set aws_access_key_id \${AWS_ACCESS_KEY_ID}
