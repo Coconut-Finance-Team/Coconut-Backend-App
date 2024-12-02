@@ -74,7 +74,7 @@ pipeline {
                             checkout([
                                 $class: 'GitSCM',
                                 branches: [[name: '*/test']],
-                                userRemoteConfigs: [[url: 'https://github.com/Coconut-Finance-Team/Coconut-Back-App.git', credentialsId: 'github-token']]
+                                userRemoteConfigs: [[url: 'https://github.com/Coconut-Finance-Team/Coconut-Backend-App.git', credentialsId: 'github-token']]
                             ])
                         }
                         echo "소스 코드 체크아웃 완료"
