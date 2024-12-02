@@ -240,6 +240,11 @@ stage('Sync ArgoCD Application') {
                         --password twinho3230 \
                         --insecure
                     
+                    echo "Git 리포지토리 인증 정보 ArgoCD에 추가..."
+                    argocd repo add https://github.com/Coconut-Finance-Team/Coconut-Backend-App.git \
+                        --username coconut \
+                        --password twinho3230
+
                     echo "backend-app 동기화 중..."
                     argocd app sync backend-app --grpc-web
                     
@@ -256,6 +261,7 @@ stage('Sync ArgoCD Application') {
         }
     }
 }
+
 
     }
 
