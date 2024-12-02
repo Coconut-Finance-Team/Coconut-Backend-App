@@ -14,9 +14,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        // Clean workspace
                         sh 'rm -rf *'
-                        // Checkout code
                         checkout scm
                     } catch (Exception e) {
                         error "Prepare stage failed: ${e.message}"
@@ -40,13 +38,23 @@ pipeline {
             }
         }
 
+        stage('Check JAR') {
+            steps {
+                script {
+                    try {
+                        sh 'ls -l build/libs/'
+                    } catch (Exception e) {
+                        error "JAR check failed: ${e.message}"
+                    }
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
                     try {
-                        sh """
-                            docker build -t ${REPOSITORY_URI}:${IMAGE_TAG} .
-                        """
+                        sh "docker build -t ${REPOSITORY_URI}:${IMAGE_TAG} ."
                     } catch (Exception e) {
                         error "Docker build failed: ${e.message}"
                     }
