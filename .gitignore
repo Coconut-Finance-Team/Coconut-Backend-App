@@ -8,6 +8,10 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+# Kubernetes Configs
+k8s/configmap.yaml
+k8s/*-configmap.yaml   # 추가
+
 # Kubernetes Secrets
 secret.yaml
 *-secret.yaml
@@ -48,3 +52,4 @@ out/
 
 ### VS Code ###
 .vscode/
+k8s/configmap.yaml

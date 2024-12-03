@@ -1,83 +1,102 @@
 pipeline {
-   agent any
-   
-   options {
-       timeout(time: 1, unit: 'HOURS')
-       disableConcurrentBuilds()
-   }
-   
-   environment {
-       ECR_REPOSITORY = "castlehoo/backend"
-       DOCKER_TAG = "${BUILD_NUMBER}"
-       ARGOCD_CREDENTIALS = credentials('argocd-credentials')
-       ARGOCD_SERVER_URL = credentials('argocd-server-url')
-       KUBE_CONFIG = credentials('eks-kubeconfig')
-       GIT_CREDENTIALS = credentials('github-token-2')
-       AWS_CREDENTIALS = credentials('aws-credentials')
-       AWS_ACCOUNT_ID = credentials('aws-account-id')
-       CLOUD_DB_CREDS = credentials('CLOUD_DB_MASTER')
-       ONPREM_DB_CREDS = credentials('ONPREM_DB_MASTER')
-   }
-   
-   stages {
-       stage('Cleanup Workspace') {
-           steps {
-               script {
-                   try {
-                       echo "시스템 클린업 시작..."
-                       
-                       sh '''
-                           echo "Docker 시스템 정리 중..."
-                           docker system prune -af || true
-                           docker volume prune -f || true
-                           docker network prune -f || true
-                           
-                           echo "이전 빌드 정리 중..."
-                           rm -rf build || true
-                           rm -rf .gradle || true
-                           
-                           echo "현재 디스크 사용량:"
-                           df -h
-                           echo "Docker 디스크 사용량:"
-                           docker system df
-                       '''
-                   } catch (Exception e) {
-                       echo "클린업 중 오류 발생: ${e.message}"
-                   }
-               }
-           }
-       }
+    agent any
 
-       stage('Create Kubernetes Secrets') {
-           steps {
-               script {
-                   echo "단계: Kubernetes Secrets 생성 시작"
-                   try {
-                       sh '''
-                           cat << EOF > k8s/secret.yaml
-                           apiVersion: v1
-                           kind: Secret
-                           metadata:
-                             name: db-redis-secret
-                             namespace: coconut-backend
-                           type: Opaque
-                           stringData:
-                             CLOUD_MASTER_USERNAME: "${CLOUD_DB_CREDS_USR}"
-                             CLOUD_MASTER_PASSWORD: "${CLOUD_DB_CREDS_PSW}"
-                             ONPREM_MASTER_USERNAME: "${ONPREM_DB_CREDS_USR}"
-                             ONPREM_MASTER_PASSWORD: "${ONPREM_DB_CREDS_PSW}"
-                           EOF
-                           
-                           kubectl apply -f k8s/secret.yaml
-                           rm k8s/secret.yaml
-                       '''
-                       echo "Kubernetes Secrets 생성 완료"
-                   } catch (Exception e) {
-                       error("Kubernetes Secrets 생성 중 오류 발생: ${e.message}")
-                   }
-               }
-           }
-       }
+    options {
+        timeout(time: 1, unit: 'HOURS')
+        disableConcurrentBuilds()
+    }
+
+    environment {
+        ECR_REPOSITORY = "castlehoo/backend"
+        DOCKER_TAG = "${BUILD_NUMBER}"
+        ARGOCD_CREDENTIALS = credentials('argocd-credentials')
+        ARGOCD_SERVER_URL = credentials('argocd-server-url')
+        KUBE_CONFIG = credentials('eks-kubeconfig')
+        GIT_CREDENTIALS = credentials('github-token-2')
+        AWS_CREDENTIALS = credentials('aws-credentials')
+        AWS_ACCOUNT_ID = credentials('aws-account-id')
+        CLOUD_DB_CREDS = credentials('CLOUD_DB_MASTER')
+        ONPREM_DB_CREDS = credentials('ONPREM_DB_MASTER')
+        CONFIG_MAP = credentials('config-map-secret')  // 추가된 환경 변수
+    }
+
+    stages {
+        stage('Cleanup Workspace') {
+            steps {
+                script {
+                    try {
+                        echo "시스템 클린업 시작..."
+
+                        sh '''
+                            echo "Docker 시스템 정리 중..."
+                            docker system prune -af || true
+                            docker volume prune -f || true
+                            docker network prune -f || true
+
+                            echo "이전 빌드 정리 중..."
+                            rm -rf build || true
+                            rm -rf .gradle || true
+
+                            echo "현재 디스크 사용량:"
+                            df -h
+                            echo "Docker 디스크 사용량:"
+                            docker system df
+                        '''
+                    } catch (Exception e) {
+                        echo "클린업 중 오류 발생: ${e.message}"
+                    }
+                }
+            }
+        }
+
+        stage('Create Kubernetes Secrets') {
+            steps {
+                script {
+                    echo "단계: Kubernetes Secrets 생성 시작"
+                    try {
+                        sh '''
+                            cat << EOF > k8s/secret.yaml
+                            apiVersion: v1
+                            kind: Secret
+                            metadata:
+                              name: db-redis-secret
+                              namespace: coconut-backend
+                            type: Opaque
+                            stringData:
+                              CLOUD_MASTER_USERNAME: "${CLOUD_DB_CREDS_USR}"
+                              CLOUD_MASTER_PASSWORD: "${CLOUD_DB_CREDS_PSW}"
+                              ONPREM_MASTER_USERNAME: "${ONPREM_DB_CREDS_USR}"
+                              ONPREM_MASTER_PASSWORD: "${ONPREM_DB_CREDS_PSW}"
+                            EOF
+
+                            kubectl apply -f k8s/secret.yaml
+                            rm k8s/secret.yaml
+                        '''
+                        echo "Kubernetes Secrets 생성 완료"
+                    } catch (Exception e) {
+                        error("Kubernetes Secrets 생성 중 오류 발생: ${e.message}")
+                    }
+                }
+            }
+        }
+
+        // 새로 추가된 ConfigMap 스테이지
+        stage('Apply ConfigMap') {
+            steps {
+                script {
+                    echo "단계: ConfigMap 적용 시작"
+                    try {
+                        sh '''
+                            echo "$CONFIG_MAP" | kubectl apply -f -
+                        '''
+                        echo "ConfigMap 적용 완료"
+                    } catch (Exception e) {
+                        error("ConfigMap 적용 중 오류 발생: ${e.message}")
+                    }
+                }
+            }
+        }
+
 
        stage('Update Security Groups') {
            steps {
