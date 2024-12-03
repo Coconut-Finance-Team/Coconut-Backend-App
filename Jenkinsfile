@@ -80,22 +80,18 @@ pipeline {
             }
         }
 
-        // 새로 추가된 ConfigMap 스테이지
-        stage('Apply ConfigMap') {
-            steps {
-                script {
-                    echo "단계: ConfigMap 적용 시작"
-                    try {
-                        sh '''
-                            echo "$CONFIG_MAP" | kubectl apply -f -
-                        '''
-                        echo "ConfigMap 적용 완료"
-                    } catch (Exception e) {
-                        error("ConfigMap 적용 중 오류 발생: ${e.message}")
-                    }
-                }
+stage('Apply ConfigMap') {
+    steps {
+        script {
+            withCredentials([string(credentialsId: 'config-map-secret', variable: 'CONFIG_MAP')]) {
+                echo "단계: ConfigMap 적용 시작"
+                sh """
+                    echo "\${CONFIG_MAP}" | kubectl apply -f -
+                """
             }
         }
+    }
+}
 
 
        stage('Update Security Groups') {
