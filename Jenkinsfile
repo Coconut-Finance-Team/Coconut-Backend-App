@@ -13,6 +13,9 @@ pipeline {
         KUBE_CONFIG = credentials('eks-kubeconfig')
         GIT_CREDENTIALS = credentials('github-token-2')
         AWS_CREDENTIALS = credentials('aws-credentials')
+        CLOUD_DB_CREDS = credentials('CLOUD_DB_MASTER')
+        ONPREM_DB_CREDS = credentials('ONPREM_DB_MASTER')
+        REDIS_CREDS = credentials('REDIS_PASSWORD')
     }
     
     stages {
@@ -39,6 +42,73 @@ pipeline {
                         '''
                     } catch (Exception e) {
                         echo "클린업 중 오류 발생: ${e.message}"
+                    }
+                }
+            }
+        }
+
+        stage('Create Kubernetes Secrets') {
+            steps {
+                script {
+                    echo "단계: Kubernetes Secrets 생성 시작"
+                    try {
+                        sh '''
+                            cat << EOF > k8s/secret.yaml
+                            apiVersion: v1
+                            kind: Secret
+                            metadata:
+                              name: db-redis-secret
+                              namespace: coconut-backend
+                            type: Opaque
+                            stringData:
+                              CLOUD_MASTER_USERNAME: "${CLOUD_DB_CREDS_USR}"
+                              CLOUD_MASTER_PASSWORD: "${CLOUD_DB_CREDS_PSW}"
+                              ONPREM_MASTER_USERNAME: "${ONPREM_DB_CREDS_USR}"
+                              ONPREM_MASTER_PASSWORD: "${ONPREM_DB_CREDS_PSW}"
+                              REDIS_PASSWORD: "${REDIS_CREDS}"
+                            EOF
+                            
+                            kubectl apply -f k8s/secret.yaml
+                            rm k8s/secret.yaml
+                        '''
+                        echo "Kubernetes Secrets 생성 완료"
+                    } catch (Exception e) {
+                        error("Kubernetes Secrets 생성 중 오류 발생: ${e.message}")
+                    }
+                }
+            }
+        }
+
+        stage('Update Security Groups') {
+            steps {
+                script {
+                    echo "단계: 보안그룹 업데이트 시작"
+                    try {
+                        sh '''
+                            # Cloud RDS 보안그룹 규칙 추가
+                            aws ec2 authorize-security-group-ingress \
+                                --group-id sg-022fd804bfb4730fb \
+                                --protocol tcp \
+                                --port 3306 \
+                                --source-group sg-07aa5c7adafd47729 || true
+                            
+                            # On-premise RDS 보안그룹 규칙 추가
+                            aws ec2 authorize-security-group-ingress \
+                                --group-id sg-00faf92561ab88317 \
+                                --protocol tcp \
+                                --port 3306 \
+                                --source-group sg-07aa5c7adafd47729 || true
+                            
+                            # Redis 보안그룹 규칙 추가
+                            aws ec2 authorize-security-group-ingress \
+                                --group-id sg-0e436402d983dd263 \
+                                --protocol tcp \
+                                --port 6379 \
+                                --source-group sg-07aa5c7adafd47729 || true
+                        '''
+                        echo "보안그룹 업데이트 완료"
+                    } catch (Exception e) {
+                        error("보안그룹 업데이트 중 오류 발생: ${e.message}")
                     }
                 }
             }
@@ -215,50 +285,50 @@ pipeline {
             }
         }
 
-stage('Sync ArgoCD Application') {
-    steps {
-        script {
-            try {
-                echo "단계: ArgoCD 동기화 시작"
-                
-                withCredentials([usernamePassword(credentialsId: 'github-token-2', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                    sh """
-                        export PATH=\$PATH:/var/lib/jenkins/bin:/usr/local/bin
+        stage('Sync ArgoCD Application') {
+            steps {
+                script {
+                    try {
+                        echo "단계: ArgoCD 동기화 시작"
                         
-                        echo "ArgoCD 서버 주소 확인..."
-                        ARGOCD_SERVER="aebaac6a687b24f28ad8311739898b12-2096717322.ap-northeast-2.elb.amazonaws.com"
-                        
-                        echo "ArgoCD 로그인..."
-                        argocd login \$ARGOCD_SERVER \
-                            --username coconut \
-                            --password twinho3230 \
-                            --insecure \
-                            --grpc-web
-                        
-                        echo "Git 리포지토리 인증 정보 ArgoCD에 추가..."
-                        argocd repo add https://github.com/Coconut-Finance-Team/Coconut-Backend-App.git \
-                            --username \$GIT_USERNAME \
-                            --password \$GIT_PASSWORD \
-                            --grpc-web \
-                            --upsert
+                        withCredentials([usernamePassword(credentialsId: 'github-token-2', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                            sh """
+                                export PATH=\$PATH:/var/lib/jenkins/bin:/usr/local/bin
+                                
+                                echo "ArgoCD 서버 주소 확인..."
+                                ARGOCD_SERVER="aebaac6a687b24f28ad8311739898b12-2096717322.ap-northeast-2.elb.amazonaws.com"
+                                
+                                echo "ArgoCD 로그인..."
+                                argocd login \$ARGOCD_SERVER \
+                                    --username coconut \
+                                    --password twinho3230 \
+                                    --insecure \
+                                    --grpc-web
+                                
+                                echo "Git 리포지토리 인증 정보 ArgoCD에 추가..."
+                                argocd repo add https://github.com/Coconut-Finance-Team/Coconut-Backend-App.git \
+                                    --username \$GIT_USERNAME \
+                                    --password \$GIT_PASSWORD \
+                                    --grpc-web \
+                                    --upsert
 
-                        echo "coconut-backend 상태 확인..."
-                        argocd app get coconut-backend --grpc-web || true
-                        
-                        echo "coconut-backend 동기화 중..."
-                        argocd app sync coconut-backend --grpc-web
-                        
-                        echo "coconut-backend 상태 대기 중..."
-                        argocd app wait coconut-backend --health --timeout 300 --grpc-web
-                    """
+                                echo "coconut-backend 상태 확인..."
+                                argocd app get coconut-backend --grpc-web || true
+                                
+                                echo "coconut-backend 동기화 중..."
+                                argocd app sync coconut-backend --grpc-web
+                                
+                                echo "coconut-backend 상태 대기 중..."
+                                argocd app wait coconut-backend --health --timeout 300 --grpc-web
+                            """
+                        }
+                        echo "ArgoCD 동기화 완료"
+                    } catch (Exception e) {
+                        error("ArgoCD 동기화 중 오류 발생: ${e.message}")
+                    }
                 }
-                echo "ArgoCD 동기화 완료"
-            } catch (Exception e) {
-                error("ArgoCD 동기화 중 오류 발생: ${e.message}")
             }
         }
-    }
-}
     }
 
     post {
@@ -290,10 +360,3 @@ stage('Sync ArgoCD Application') {
                 echo '파이프라인 실패! 로그를 확인하세요.'
             }
         }
-        success {
-            script {
-                echo '파이프라인이 성공적으로 완료되었습니다!'
-            }
-        }
-    }
-}
