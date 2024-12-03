@@ -8,6 +8,16 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+# Kubernetes Secrets
+secret.yaml
+*-secret.yaml
+!example-secret.yaml
+
+# Environment files
+.env
+*.env
+.env.local
+
 ### STS ###
 .apt_generated
 .classpath
