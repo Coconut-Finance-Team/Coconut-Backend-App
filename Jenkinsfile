@@ -91,16 +91,48 @@ pipeline {
                    script {
                        echo "단계: Spring 애플리케이션 빌드 시작"
                        timeout(time: 10, unit: 'MINUTES') {
-                           sh '''
-                               echo "Gradle 권한 설정..."
-                               chmod +x gradlew
-                               
-                               echo "Spring 애플리케이션 빌드 중..."
-                               ./gradlew clean build -x test
-                               
-                               echo "빌드 결과 확인..."
-                               ls -la build/libs/
-                           '''
+                           withCredentials([
+                               file(credentialsId: 'application-es', variable: 'ES_PROPERTIES'),
+                               file(credentialsId: 'application-db', variable: 'DB_PROPERTIES'),
+                               file(credentialsId: 'application-koreainvestment', variable: 'KOREA_PROPERTIES'),
+                               file(credentialsId: 'application-oauth', variable: 'OAUTH_PROPERTIES'),
+                               file(credentialsId: 'application-email', variable: 'EMAIL_PROPERTIES'),
+                               usernamePassword(credentialsId: 'es-credentials', usernameVariable: 'ES_USERNAME', passwordVariable: 'ES_PASSWORD'),
+                               string(credentialsId: 'es-host', variable: 'ES_HOST'),
+                               usernamePassword(credentialsId: 'db-credentials', usernameVariable: 'DB_USERNAME', passwordVariable: 'DB_PASSWORD'),
+                               string(credentialsId: 'db-url', variable: 'DB_URL')
+                           ]) {
+                               sh '''
+                                   echo "Gradle 권한 설정..."
+                                   chmod +x gradlew
+                                   
+                                   echo "Properties 파일 복사..."
+                                   mkdir -p src/main/resources
+                                   
+                                   # ES Properties
+                                   cp $ES_PROPERTIES src/main/resources/application-es.properties.yaml
+                                   sed -i "s|\\${ES_HOST}|$ES_HOST|g" src/main/resources/application-es.properties.yaml
+                                   sed -i "s|\\${ES_USERNAME}|$ES_USERNAME|g" src/main/resources/application-es.properties.yaml
+                                   sed -i "s|\\${ES_PASSWORD}|$ES_PASSWORD|g" src/main/resources/application-es.properties.yaml
+                                   
+                                   # DB Properties
+                                   cp $DB_PROPERTIES src/main/resources/application-db-properties.yaml
+                                   sed -i "s|\\${DB_URL}|$DB_URL|g" src/main/resources/application-db-properties.yaml
+                                   sed -i "s|\\${DB_USERNAME}|$DB_USERNAME|g" src/main/resources/application-db-properties.yaml
+                                   sed -i "s|\\${DB_PASSWORD}|$DB_PASSWORD|g" src/main/resources/application-db-properties.yaml
+                                   
+                                   # Other Properties
+                                   cp $KOREA_PROPERTIES src/main/resources/application-koreainvestment.properties.yaml
+                                   cp $OAUTH_PROPERTIES src/main/resources/application-oauth.properties.yaml
+                                   cp $EMAIL_PROPERTIES src/main/resources/application-email.properties.yaml
+                                   
+                                   echo "Spring 애플리케이션 빌드 중..."
+                                   ./gradlew clean build -x test
+                                   
+                                   echo "빌드 결과 확인..."
+                                   ls -la build/libs/
+                               '''
+                           }
                        }
                        echo "Spring 애플리케이션 빌드 완료"
                    }
