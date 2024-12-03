@@ -17,7 +17,7 @@ pipeline {
         AWS_ACCOUNT_ID = credentials('aws-account-id')
         CLOUD_DB_CREDS = credentials('CLOUD_DB_MASTER')
         ONPREM_DB_CREDS = credentials('ONPREM_DB_MASTER')
-        CONFIG_MAP = credentials('config-map-secret')  // 추가된 환경 변수
+        CONFIG_MAP_FILE = credentials('config-map-file')  // Secret file 방식
     }
 
     stages {
@@ -83,12 +83,10 @@ pipeline {
 stage('Apply ConfigMap') {
     steps {
         script {
-            withCredentials([string(credentialsId: 'config-map-secret', variable: 'CONFIG_MAP')]) {
-                echo "단계: ConfigMap 적용 시작"
-                sh """
-                    echo "\${CONFIG_MAP}" | kubectl apply -f -
-                """
-            }
+            echo "단계: ConfigMap 적용 시작"
+            sh """
+                kubectl apply -f \$CONFIG_MAP_FILE
+            """
         }
     }
 }
