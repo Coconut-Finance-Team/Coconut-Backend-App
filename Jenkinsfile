@@ -15,9 +15,6 @@ pipeline {
         GIT_CREDENTIALS = credentials('github-token-2')
         AWS_CREDENTIALS = credentials('aws-credentials')
         AWS_ACCOUNT_ID = credentials('aws-account-id')
-        CLOUD_DB_CREDS = credentials('CLOUD_DB_MASTER')
-        ONPREM_DB_CREDS = credentials('ONPREM_DB_MASTER')
-        CONFIG_MAP_FILE = credentials('config-map-file')  // Secret file 방식
     }
 
     stages {
@@ -48,84 +45,6 @@ pipeline {
                 }
             }
         }
-
-        stage('Create Kubernetes Secrets') {
-            steps {
-                script {
-                    echo "단계: Kubernetes Secrets 생성 시작"
-                    try {
-                        sh '''
-                            cat << EOF > k8s/secret.yaml
-                            apiVersion: v1
-                            kind: Secret
-                            metadata:
-                              name: db-redis-secret
-                              namespace: coconut-backend
-                            type: Opaque
-                            stringData:
-                              CLOUD_MASTER_USERNAME: "${CLOUD_DB_CREDS_USR}"
-                              CLOUD_MASTER_PASSWORD: "${CLOUD_DB_CREDS_PSW}"
-                              ONPREM_MASTER_USERNAME: "${ONPREM_DB_CREDS_USR}"
-                              ONPREM_MASTER_PASSWORD: "${ONPREM_DB_CREDS_PSW}"
-                            EOF
-
-                            kubectl apply -f k8s/secret.yaml
-                            rm k8s/secret.yaml
-                        '''
-                        echo "Kubernetes Secrets 생성 완료"
-                    } catch (Exception e) {
-                        error("Kubernetes Secrets 생성 중 오류 발생: ${e.message}")
-                    }
-                }
-            }
-        }
-
-stage('Apply ConfigMap') {
-    steps {
-        script {
-            echo "단계: ConfigMap 적용 시작"
-            sh """
-                kubectl apply -f \$CONFIG_MAP_FILE
-            """
-        }
-    }
-}
-
-
-       stage('Update Security Groups') {
-           steps {
-               script {
-                   echo "단계: 보안그룹 업데이트 시작"
-                   try {
-                       sh '''
-                           # Cloud RDS 보안그룹 규칙 추가
-                           aws ec2 authorize-security-group-ingress \
-                               --group-id sg-022fd804bfb4730fb \
-                               --protocol tcp \
-                               --port 3306 \
-                               --source-group sg-07aa5c7adafd47729 || true
-                           
-                           # On-premise RDS 보안그룹 규칙 추가
-                           aws ec2 authorize-security-group-ingress \
-                               --group-id sg-00faf92561ab88317 \
-                               --protocol tcp \
-                               --port 3306 \
-                               --source-group sg-07aa5c7adafd47729 || true
-                           
-                           # Redis 보안그룹 규칙 추가
-                           aws ec2 authorize-security-group-ingress \
-                               --group-id sg-0e436402d983dd263 \
-                               --protocol tcp \
-                               --port 6379 \
-                               --source-group sg-07aa5c7adafd47729 || true
-                       '''
-                       echo "보안그룹 업데이트 완료"
-                   } catch (Exception e) {
-                       error("보안그룹 업데이트 중 오류 발생: ${e.message}")
-                   }
-               }
-           }
-       }
 
        stage('Check Commit Message') {
            steps {
