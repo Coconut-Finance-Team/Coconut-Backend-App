@@ -46,3 +46,69 @@ spec:
             port: 8080
           initialDelaySeconds: 30
           periodSeconds: 10
+        env:
+        # Cloud DB Configuration
+        - name: CLOUD_DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: CLOUD_DB_HOST
+        - name: CLOUD_DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: CLOUD_DB_PORT
+        - name: CLOUD_DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: CLOUD_DB_NAME
+        - name: CLOUD_MASTER_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: db-redis-secret
+              key: CLOUD_MASTER_USERNAME
+        - name: CLOUD_MASTER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-redis-secret
+              key: CLOUD_MASTER_PASSWORD
+              
+        # On-premise DB Configuration
+        - name: ONPREM_DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: ONPREM_DB_HOST
+        - name: ONPREM_DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: ONPREM_DB_PORT
+        - name: ONPREM_DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: ONPREM_DB_NAME
+        - name: ONPREM_MASTER_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: db-redis-secret
+              key: ONPREM_MASTER_USERNAME
+        - name: ONPREM_MASTER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-redis-secret
+              key: ONPREM_MASTER_PASSWORD
+              
+        # Redis Configuration
+        - name: SPRING_REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: SPRING_REDIS_HOST
+        - name: SPRING_REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: SPRING_REDIS_PORT
