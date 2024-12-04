@@ -84,70 +84,70 @@ pipeline {
             }
         }
 
-        stage('Build Spring Application') {
-            steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    script {
-                        echo "단계: Spring 애플리케이션 빌드 시작"
-                        timeout(time: 10, unit: 'MINUTES') {
-                            withCredentials([
-                                file(credentialsId: 'application-es', variable: 'ES_PROPERTIES'),
-                                file(credentialsId: 'application-db', variable: 'DB_PROPERTIES'),
-                                file(credentialsId: 'application-koreainvestment', variable: 'KOREA_PROPERTIES'),
-                                file(credentialsId: 'application-oauth', variable: 'OAUTH_PROPERTIES'),
-                                file(credentialsId: 'application-email', variable: 'EMAIL_PROPERTIES'),
-                                file(credentialsId: 'application-redis', variable: 'REDIS_PROPERTIES'),
-                                string(credentialsId: 'es-host', variable: 'ES_HOST'),
-                                string(credentialsId: 'cloud-db-url', variable: 'CLOUD_DB_URL'),
-                                string(credentialsId: 'onprem-db-url', variable: 'ONPREM_DB_URL'),
-                                string(credentialsId: 'onprem-read-db-url', variable: 'ONPREM_READ_DB_URL'),
-                                usernamePassword(credentialsId: 'CLOUD_DB_MASTER', usernameVariable: 'CLOUD_DB_USERNAME', passwordVariable: 'CLOUD_DB_PASSWORD'),
-                                usernamePassword(credentialsId: 'ONPREM_DB_MASTER', usernameVariable: 'ONPREM_DB_USERNAME', passwordVariable: 'ONPREM_DB_PASSWORD')
-                            ]) {
-                                sh '''
-                                    echo "Gradle 권한 설정..."
-                                    chmod +x gradlew
-                                    
-                                    echo "Properties 파일 복사..."
-                                    mkdir -p src/main/resources
-                                    
-                                    # ES Properties
-                                    cp $ES_PROPERTIES src/main/resources/application-es.properties.yaml
-                                    sed -i "s|\\${ES_HOST}|$ES_HOST|g" src/main/resources/application-es.properties.yaml
-                                    
-                                    # DB Properties
-                                    cp $DB_PROPERTIES src/main/resources/application-db-properties.yaml
-                                    sed -i "s|\\${CLOUD_DB_URL}|$CLOUD_DB_URL|g" src/main/resources/application-db-properties.yaml
-                                    sed -i "s|\\${CLOUD_DB_USERNAME}|$CLOUD_DB_USERNAME|g" src/main/resources/application-db-properties.yaml
-                                    sed -i "s|\\${CLOUD_DB_PASSWORD}|$CLOUD_DB_PASSWORD|g" src/main/resources/application-db-properties.yaml
-                                    sed -i "s|\\${ONPREM_DB_URL}|$ONPREM_DB_URL|g" src/main/resources/application-db-properties.yaml
-                                    sed -i "s|\\${ONPREM_READ_DB_URL}|$ONPREM_READ_DB_URL|g" src/main/resources/application-db-properties.yaml
-                                    sed -i "s|\\${ONPREM_DB_USERNAME}|$ONPREM_DB_USERNAME|g" src/main/resources/application-db-properties.yaml
-                                    sed -i "s|\\${ONPREM_DB_PASSWORD}|$ONPREM_DB_PASSWORD|g" src/main/resources/application-db-properties.yaml
-                                    
-                                    # Redis Properties
-                                    cp $REDIS_PROPERTIES src/main/resources/application-redis.properties.yaml
-                                    
-                                    # Other Properties
-                                    cp $KOREA_PROPERTIES src/main/resources/application-koreainvestment.properties.yaml
-                                    cp $OAUTH_PROPERTIES src/main/resources/application-oauth.properties.yaml
-                                    cp $EMAIL_PROPERTIES src/main/resources/application-email.properties.yaml
-                                    
-                                    echo "Spring 애플리케이션 빌드 중..."
-                                    ./gradlew clean build -x test
-                                    
-                                    echo "빌드 결과 확인..."
-                                    ls -la build/libs/
-                                    echo "생성된 JAR 파일:"
-                                    find build/libs/ -name "*.jar" -type f -exec ls -l {} \\;
-                                '''
-                            }
-                        }
-                        echo "Spring 애플리케이션 빌드 완료"
+stage('Build Spring Application') {
+    steps {
+        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+            script {
+                echo "단계: Spring 애플리케이션 빌드 시작"
+                timeout(time: 10, unit: 'MINUTES') {
+                    withCredentials([
+                        file(credentialsId: 'application-es', variable: 'ES_PROPERTIES'),
+                        file(credentialsId: 'application-db', variable: 'DB_PROPERTIES'),
+                        file(credentialsId: 'application-koreainvestment', variable: 'KOREA_PROPERTIES'),
+                        file(credentialsId: 'application-oauth', variable: 'OAUTH_PROPERTIES'),
+                        file(credentialsId: 'application-email', variable: 'EMAIL_PROPERTIES'),
+                        file(credentialsId: 'application-redis', variable: 'REDIS_PROPERTIES'),
+                        string(credentialsId: 'es-host', variable: 'ES_HOST'),
+                        string(credentialsId: 'cloud-db-url', variable: 'CLOUD_DB_URL'),
+                        string(credentialsId: 'onprem-db-url', variable: 'ONPREM_DB_URL'),
+                        string(credentialsId: 'onprem-read-db-url', variable: 'ONPREM_READ_DB_URL'),
+                        usernamePassword(credentialsId: 'CLOUD_DB_MASTER', usernameVariable: 'CLOUD_DB_USERNAME', passwordVariable: 'CLOUD_DB_PASSWORD'),
+                        usernamePassword(credentialsId: 'ONPREM_DB_MASTER', usernameVariable: 'ONPREM_DB_USERNAME', passwordVariable: 'ONPREM_DB_PASSWORD')
+                    ]) {
+                        sh '''
+                            echo "Gradle 권한 설정..."
+                            chmod +x gradlew
+                            
+                            echo "Properties 파일 복사..."
+                            mkdir -p src/main/resources
+                            
+                            # ES Properties
+                            cp $ES_PROPERTIES src/main/resources/application-es.properties
+                            sed -i "s|\\${ES_HOST}|$ES_HOST|g" src/main/resources/application-es.properties
+                            
+                            # DB Properties
+                            cp $DB_PROPERTIES src/main/resources/application-db.properties
+                            sed -i "s|\\${CLOUD_DB_URL}|$CLOUD_DB_URL|g" src/main/resources/application-db.properties
+                            sed -i "s|\\${CLOUD_DB_USERNAME}|$CLOUD_DB_USERNAME|g" src/main/resources/application-db.properties
+                            sed -i "s|\\${CLOUD_DB_PASSWORD}|$CLOUD_DB_PASSWORD|g" src/main/resources/application-db.properties
+                            sed -i "s|\\${ONPREM_DB_URL}|$ONPREM_DB_URL|g" src/main/resources/application-db.properties
+                            sed -i "s|\\${ONPREM_READ_DB_URL}|$ONPREM_READ_DB_URL|g" src/main/resources/application-db.properties
+                            sed -i "s|\\${ONPREM_DB_USERNAME}|$ONPREM_DB_USERNAME|g" src/main/resources/application-db.properties
+                            sed -i "s|\\${ONPREM_DB_PASSWORD}|$ONPREM_DB_PASSWORD|g" src/main/resources/application-db.properties
+                            
+                            # Redis Properties
+                            cp $REDIS_PROPERTIES src/main/resources/application-redis.properties
+                            
+                            # Other Properties
+                            cp $KOREA_PROPERTIES src/main/resources/application-koreainvestment.properties
+                            cp $OAUTH_PROPERTIES src/main/resources/application-oauth.properties
+                            cp $EMAIL_PROPERTIES src/main/resources/application-email.properties
+                            
+                            echo "Spring 애플리케이션 빌드 중..."
+                            ./gradlew clean build -x test
+                            
+                            echo "빌드 결과 확인..."
+                            ls -la build/libs/
+                            echo "생성된 JAR 파일:"
+                            find build/libs/ -name "*.jar" -type f -exec ls -l {} \\;
+                        '''
                     }
                 }
+                echo "Spring 애플리케이션 빌드 완료"
             }
         }
+    }
+}
 
         stage('Build Docker Image') {
             steps {
