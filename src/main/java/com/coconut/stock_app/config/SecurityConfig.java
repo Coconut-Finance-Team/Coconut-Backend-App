@@ -72,8 +72,8 @@ public class SecurityConfig {
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(myUserDetailsService); // ID 기반 사용자 로드
-        provider.setPasswordEncoder(passwordEncoder()); // 비밀번호 암호화
+        provider.setUserDetailsService(myUserDetailsService); // 사용자 정보 조회 서비스
+        provider.setPasswordEncoder(passwordEncoder()); // 비밀번호 암호화 처리
         return provider;
     }
 

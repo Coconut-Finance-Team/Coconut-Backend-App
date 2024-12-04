@@ -1,26 +1,21 @@
 package com.coconut.stock_app.websocket;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 
 @Component
-@RequiredArgsConstructor
+@Slf4j
 public class StockWebSocketHandler extends TextWebSocketHandler {
 
-    private final RedisTemplate<String, String> redisTemplate;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    // 종목별 WebSocket 세션 관리
     private final ConcurrentHashMap<String, WebSocketSession> stockSessions = new ConcurrentHashMap<>();
 
     @Override
@@ -28,7 +23,7 @@ public class StockWebSocketHandler extends TextWebSocketHandler {
         String stockCode = getStockCodeFromSession(session);
         if (stockCode != null) {
             stockSessions.put(stockCode, session);
-            System.out.println("종목 연결: " + session.getId() + " (종목 코드: " + stockCode + ")");
+            log.info("WebSocket connected: {} (Stock Code: {})", session.getId(), stockCode);
         }
     }
 
@@ -37,31 +32,30 @@ public class StockWebSocketHandler extends TextWebSocketHandler {
         String stockCode = getStockCodeFromSession(session);
         if (stockCode != null) {
             stockSessions.remove(stockCode);
-            System.out.println("종목 연결 종료: " + session.getId() + " (종목 코드: " + stockCode + ")");
+            log.info("WebSocket connection closed: {} (Stock Code: {})", session.getId(), stockCode);
         }
     }
 
-    @Scheduled(fixedRate = 1000)
-    public void pushStockData() {
-        for (Map.Entry<String, WebSocketSession> entry : stockSessions.entrySet()) {
-            String stockCode = entry.getKey();
-            WebSocketSession session = entry.getValue();
-
-            if (session.isOpen()) {
-                List<String> stockDataList = redisTemplate.opsForList().range("stock-" + stockCode, 0, -1);
-                if (stockDataList != null && !stockDataList.isEmpty()) {
-                    try {
-                        String jsonData = objectMapper.writeValueAsString(stockDataList);
-                        session.sendMessage(new TextMessage(jsonData));
-                        System.out.println("전송 성공 [" + stockCode + "]: " + jsonData);
-                    } catch (IOException e) {
-                        System.err.println("전송 실패 [" + stockCode + "]: " + e.getMessage());
-                    }
-                }
+    /**
+     * Redis Pub/Sub에서 수신한 데이터를 WebSocket 세션으로 전송
+     */
+    public void sendStockData(String stockCode, String jsonData) {
+        WebSocketSession session = stockSessions.get(stockCode);
+        if (session != null && session.isOpen()) {
+            try {
+                session.sendMessage(new TextMessage(jsonData));
+                log.info("Sent data to WebSocket (Stock Code: {}): {}", stockCode, jsonData);
+            } catch (IOException e) {
+                log.error("Failed to send data to WebSocket (Stock Code: {}): {}", stockCode, e.getMessage());
             }
+        } else {
+            log.warn("No active WebSocket session for stock code: {}", stockCode);
         }
     }
 
+    /**
+     * Extract stock code from WebSocket session URI
+     */
     private String getStockCodeFromSession(WebSocketSession session) {
         String path = session.getUri().getPath();
         if (path != null) {

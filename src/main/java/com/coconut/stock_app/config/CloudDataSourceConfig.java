@@ -45,7 +45,7 @@ public class CloudDataSourceConfig {
 
     // 데이터 소스 설정
     @Bean
-    @ConfigurationProperties(prefix = "spring.datasource.cloud")
+    @ConfigurationProperties(prefix = "spring.datasource.cloud.master")
     public DataSource cloudDatabaseDataSource() {
         return DataSourceBuilder.create().build();
     }

@@ -37,5 +37,3 @@ public class Stock extends BaseEntity implements Serializable {
     @OneToMany(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StockChart> stockCharts;
 }
-
-

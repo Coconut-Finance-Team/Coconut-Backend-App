@@ -20,10 +20,10 @@ public class Trade extends BaseEntity implements Serializable {
     private Long tradeId;
 
     @Column(nullable = false)
-    private LocalDate tradeDate;
+    private String stockCode;
 
     @Column(nullable = false)
-    private int tradeQuantity;
+    private Long tradeQuantity;
 
     @Column(nullable = false)
     private BigDecimal tradePrice;

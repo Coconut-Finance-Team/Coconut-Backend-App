@@ -1,0 +1,45 @@
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 1,
+      "number_of_replicas": 1,
+      "max_ngram_diff": 9,
+      "analysis": {
+        "analyzer": {
+          "custom_korean": {
+            "tokenizer": "nori_tokenizer",
+            "filter": [
+              "lowercase",
+              "trim",
+              "nori_readingform",
+              "ngram_filter"
+            ]
+          }
+        },
+        "filter": {
+          "ngram_filter": {
+            "type": "ngram",
+            "min_gram": 1,
+            "max_gram": 10
+          }
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "stockCode": {
+        "type": "keyword"
+      },
+      "stockName": {
+        "type": "text",
+        "analyzer": "custom_korean",
+        "fields": {
+          "keyword": {
+            "type": "keyword"
+          }
+        }
+      }
+    }
+  }
+}
