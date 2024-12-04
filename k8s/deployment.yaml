@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: coconut-frontend
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      tolerations:
+      - key: "dedicated"
+        operator: "Equal"
+        value: "frontend"
+        effect: "NoSchedule"
+      imagePullSecrets:
+      - name: ecr-credentials
+      containers:
+      - name: frontend
+        image: 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/castlehoo/frontend:10
+        imagePullPolicy: Always
