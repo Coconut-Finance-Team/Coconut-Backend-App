@@ -179,10 +179,11 @@ stage('Build Spring Application') {
                 script {
                     try {
                         withCredentials([[
-                            credentialsId: 'aws-credentials',
-                            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                        ]]) {
+    $class: 'AmazonWebServicesCredentialsBinding',
+    credentialsId: 'aws-credentials',
+    accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+]]) {
                             echo "단계: ECR 푸시 시작"
                             
                             def imageExists = sh(
