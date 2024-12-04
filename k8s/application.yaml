@@ -1,17 +1,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: frontend-app
+  name: coconut-backend    # Jenkinsfile의 argocd app 이름과 일치하도록 변경
   namespace: argocd
 spec:
   project: default
   source:
-    repoURL: https://github.com/Coconut-Finance-Team/Coconut-Front-App.git
+    repoURL: https://github.com/Coconut-Finance-Team/Coconut-Backend-App.git    # 저장소 이름 수정
     path: k8s
-    targetRevision: main
+    targetRevision: test    # 브랜치를 test로 변경
   destination:
     server: https://kubernetes.default.svc
-    namespace: coconut-frontend
+    namespace: coconut-backend
   syncPolicy:
     automated:
       prune: true

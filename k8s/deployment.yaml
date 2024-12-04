@@ -1,28 +1,114 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend-deployment
-  namespace: coconut-frontend
-  annotations:
-    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+  name: backend-deployment
+  namespace: coconut-backend
+  labels:
+    app: backend
+    app.kubernetes.io/name: backend
+    app.kubernetes.io/part-of: coconut-finance
 spec:
-  replicas: 1
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
-      app: frontend
+      app: backend
   template:
     metadata:
       labels:
-        app: frontend
+        app: backend
     spec:
-      tolerations:
-      - key: "dedicated"
-        operator: "Equal"
-        value: "frontend"
-        effect: "NoSchedule"
-      imagePullSecrets:
-      - name: ecr-credentials
       containers:
-      - name: frontend
-        image: 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/castlehoo/frontend:10
-        imagePullPolicy: Always
+      - name: backend
+        image: 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/castlehoo/backend:47
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        env:
+        # Cloud DB Configuration
+        - name: CLOUD_DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: CLOUD_DB_HOST
+        - name: CLOUD_DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: CLOUD_DB_PORT
+        - name: CLOUD_DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: CLOUD_DB_NAME
+        - name: CLOUD_MASTER_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: db-redis-secret
+              key: CLOUD_MASTER_USERNAME
+        - name: CLOUD_MASTER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-redis-secret
+              key: CLOUD_MASTER_PASSWORD
+              
+        # On-premise DB Configuration
+        - name: ONPREM_DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: ONPREM_DB_HOST
+        - name: ONPREM_DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: ONPREM_DB_PORT
+        - name: ONPREM_DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: ONPREM_DB_NAME
+        - name: ONPREM_MASTER_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: db-redis-secret
+              key: ONPREM_MASTER_USERNAME
+        - name: ONPREM_MASTER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-redis-secret
+              key: ONPREM_MASTER_PASSWORD
+              
+        # Redis Configuration
+        - name: SPRING_REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: SPRING_REDIS_HOST
+        - name: SPRING_REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: SPRING_REDIS_PORT

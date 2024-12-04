@@ -1,12 +1,10 @@
-# Frontend Dockerfile
-FROM node:16 as builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm install --legacy-peer-deps  # 이 부분을 수정
-COPY . .
-RUN npm run build
+FROM openjdk:17-slim
 
-FROM nginx:alpine
-COPY --from=builder /app/build /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
+WORKDIR /app
+
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+
+# 올바른 JAR 파일 이름으로 수정
+COPY build/libs/stock-app-0.0.1-SNAPSHOT.jar app.jar
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
