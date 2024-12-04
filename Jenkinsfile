@@ -129,9 +129,11 @@ pipeline {
                                    echo "Spring 애플리케이션 빌드 중..."
                                    ./gradlew clean build -x test
                                    
-                                   echo "빌드 결과 확인..."
-                                   ls -la build/libs/
-                               '''
+                                    echo "빌드 결과 확인..."
+                            ls -la build/libs/
+                            echo "생성된 JAR 파일:"
+                            find build/libs/ -name "*.jar" -type f -exec ls -l {} \\;
+                        '''
                            }
                        }
                        echo "Spring 애플리케이션 빌드 완료"
