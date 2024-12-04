@@ -21,24 +21,26 @@ pipeline {
         stage('Cleanup Workspace') {
             steps {
                 script {
-                    echo "시스템 클린업 시작..."
-                    sh '''
-                        sudo chown -R jenkins:jenkins .
-                        echo "Docker 시스템 정리 중..."
-                        docker system prune -af || true
-                        docker volume prune -f || true
-                        docker network prune -f || true
+                    try {
+                        echo "시스템 클린업 시작..."
+                        sh '''
+                            echo "Docker 시스템 정리 중..."
+                            docker system prune -af || true
+                            docker volume prune -f || true
+                            docker network prune -f || true
 
-                        echo "이전 빌드 정리 중..."
-                        rm -rf build || true
-                        rm -rf .gradle || true
-                        rm -rf src/main/resources/*.yaml || true
+                            echo "이전 빌드 정리 중..."
+                            rm -rf build || true
+                            rm -rf .gradle || true
 
-                        echo "현재 디스크 사용량:"
-                        df -h
-                        echo "Docker 디스크 사용량:"
-                        docker system df
-                    '''
+                            echo "현재 디스크 사용량:"
+                            df -h
+                            echo "Docker 디스크 사용량:"
+                            docker system df
+                        '''
+                    } catch (Exception e) {
+                        echo "클린업 중 오류 발생: ${e.message}"
+                    }
                 }
             }
         }
@@ -103,18 +105,18 @@ pipeline {
                                 usernamePassword(credentialsId: 'ONPREM_DB_MASTER', usernameVariable: 'ONPREM_DB_USERNAME', passwordVariable: 'ONPREM_DB_PASSWORD')
                             ]) {
                                 sh '''
-                                    echo "디렉토리 권한 설정..."
-                                    mkdir -p src/main/resources
-                                    sudo chown -R jenkins:jenkins src/main/resources
-                                    
                                     echo "Gradle 권한 설정..."
                                     chmod +x gradlew
                                     
                                     echo "Properties 파일 복사..."
-                                    cp -f $ES_PROPERTIES src/main/resources/application-es.properties.yaml
+                                    mkdir -p src/main/resources
+                                    
+                                    # ES Properties
+                                    cp $ES_PROPERTIES src/main/resources/application-es.properties.yaml
                                     sed -i "s|\\${ES_HOST}|$ES_HOST|g" src/main/resources/application-es.properties.yaml
                                     
-                                    cp -f $DB_PROPERTIES src/main/resources/application-db-properties.yaml
+                                    # DB Properties
+                                    cp $DB_PROPERTIES src/main/resources/application-db-properties.yaml
                                     sed -i "s|\\${CLOUD_DB_URL}|$CLOUD_DB_URL|g" src/main/resources/application-db-properties.yaml
                                     sed -i "s|\\${CLOUD_DB_USERNAME}|$CLOUD_DB_USERNAME|g" src/main/resources/application-db-properties.yaml
                                     sed -i "s|\\${CLOUD_DB_PASSWORD}|$CLOUD_DB_PASSWORD|g" src/main/resources/application-db-properties.yaml
@@ -123,13 +125,16 @@ pipeline {
                                     sed -i "s|\\${ONPREM_DB_USERNAME}|$ONPREM_DB_USERNAME|g" src/main/resources/application-db-properties.yaml
                                     sed -i "s|\\${ONPREM_DB_PASSWORD}|$ONPREM_DB_PASSWORD|g" src/main/resources/application-db-properties.yaml
                                     
-                                    cp -f $REDIS_PROPERTIES src/main/resources/application-redis.properties.yaml
-                                    cp -f $KOREA_PROPERTIES src/main/resources/application-koreainvestment.properties.yaml
-                                    cp -f $OAUTH_PROPERTIES src/main/resources/application-oauth.properties.yaml
-                                    cp -f $EMAIL_PROPERTIES src/main/resources/application-email.properties.yaml
+                                    # Redis Properties
+                                    cp $REDIS_PROPERTIES src/main/resources/application-redis.properties.yaml
+                                    
+                                    # Other Properties
+                                    cp $KOREA_PROPERTIES src/main/resources/application-koreainvestment.properties.yaml
+                                    cp $OAUTH_PROPERTIES src/main/resources/application-oauth.properties.yaml
+                                    cp $EMAIL_PROPERTIES src/main/resources/application-email.properties.yaml
                                     
                                     echo "Spring 애플리케이션 빌드 중..."
-                                    ./gradlew clean build -x test --no-daemon
+                                    ./gradlew clean build -x test
                                     
                                     echo "빌드 결과 확인..."
                                     ls -la build/libs/
@@ -148,24 +153,22 @@ pipeline {
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     script {
-                        echo "단계: Docker 이미지 빌드 시작"
-                        sh '''
-                            echo "Docker 빌드 컨텍스트 확인..."
-                            ls -la
-                            
-                            # JAR 파일 존재 확인
-                            if [ ! -f build/libs/coconut-0.0.1-SNAPSHOT.jar ]; then
-                                echo "Error: JAR file not found!"
-                                exit 1
-                            fi
-                            
-                            echo "Docker 이미지 빌드 중... (태그: ${DOCKER_TAG})"
-                            docker build -t ${ECR_REPOSITORY}:${DOCKER_TAG} .
-                            
-                            echo "빌드된 Docker 이미지 확인"
-                            docker images | grep ${ECR_REPOSITORY}
-                        '''
-                        echo "Docker 이미지 빌드 완료"
+                        try {
+                            echo "단계: Docker 이미지 빌드 시작"
+                            sh """
+                                echo "Docker 빌드 컨텍스트 확인..."
+                                ls -la
+                                
+                                echo "Docker 이미지 빌드 중... (태그: ${DOCKER_TAG})"
+                                docker build -t ${ECR_REPOSITORY}:${DOCKER_TAG} .
+                                
+                                echo "빌드된 Docker 이미지 확인"
+                                docker images | grep ${ECR_REPOSITORY}
+                            """
+                            echo "Docker 이미지 빌드 완료"
+                        } catch (Exception e) {
+                            error("Docker 이미지 빌드 중 오류 발생: ${e.message}")
+                        }
                     }
                 }
             }
@@ -175,13 +178,11 @@ pipeline {
             steps {
                 script {
                     try {
-                        withCredentials([
-                            usernamePassword(
-                                credentialsId: 'aws-credentials',
-                                usernameVariable: 'AWS_ACCESS_KEY_ID',
-                                passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-                            )
-                        ]) {
+                        withCredentials([[
+                            credentialsId: 'aws-credentials',
+                            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                        ]]) {
                             echo "단계: ECR 푸시 시작"
                             
                             def imageExists = sh(
