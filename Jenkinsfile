@@ -21,26 +21,24 @@ pipeline {
         stage('Cleanup Workspace') {
             steps {
                 script {
-                    try {
-                        echo "시스템 클린업 시작..."
-                        sh '''
-                            echo "Docker 시스템 정리 중..."
-                            docker system prune -af || true
-                            docker volume prune -f || true
-                            docker network prune -f || true
+                    echo "시스템 클린업 시작..."
+                    sh '''
+                        sudo chown -R jenkins:jenkins .
+                        echo "Docker 시스템 정리 중..."
+                        docker system prune -af || true
+                        docker volume prune -f || true
+                        docker network prune -f || true
 
-                            echo "이전 빌드 정리 중..."
-                            rm -rf build || true
-                            rm -rf .gradle || true
+                        echo "이전 빌드 정리 중..."
+                        rm -rf build || true
+                        rm -rf .gradle || true
+                        rm -rf src/main/resources/*.yaml || true
 
-                            echo "현재 디스크 사용량:"
-                            df -h
-                            echo "Docker 디스크 사용량:"
-                            docker system df
-                        '''
-                    } catch (Exception e) {
-                        echo "클린업 중 오류 발생: ${e.message}"
-                    }
+                        echo "현재 디스크 사용량:"
+                        df -h
+                        echo "Docker 디스크 사용량:"
+                        docker system df
+                    '''
                 }
             }
         }
@@ -105,18 +103,18 @@ pipeline {
                                 usernamePassword(credentialsId: 'ONPREM_DB_MASTER', usernameVariable: 'ONPREM_DB_USERNAME', passwordVariable: 'ONPREM_DB_PASSWORD')
                             ]) {
                                 sh '''
+                                    echo "디렉토리 권한 설정..."
+                                    mkdir -p src/main/resources
+                                    sudo chown -R jenkins:jenkins src/main/resources
+                                    
                                     echo "Gradle 권한 설정..."
                                     chmod +x gradlew
                                     
                                     echo "Properties 파일 복사..."
-                                    mkdir -p src/main/resources
-                                    
-                                    # ES Properties
-                                    cp $ES_PROPERTIES src/main/resources/application-es.properties.yaml
+                                    cp -f $ES_PROPERTIES src/main/resources/application-es.properties.yaml
                                     sed -i "s|\\${ES_HOST}|$ES_HOST|g" src/main/resources/application-es.properties.yaml
                                     
-                                    # DB Properties
-                                    cp $DB_PROPERTIES src/main/resources/application-db-properties.yaml
+                                    cp -f $DB_PROPERTIES src/main/resources/application-db-properties.yaml
                                     sed -i "s|\\${CLOUD_DB_URL}|$CLOUD_DB_URL|g" src/main/resources/application-db-properties.yaml
                                     sed -i "s|\\${CLOUD_DB_USERNAME}|$CLOUD_DB_USERNAME|g" src/main/resources/application-db-properties.yaml
                                     sed -i "s|\\${CLOUD_DB_PASSWORD}|$CLOUD_DB_PASSWORD|g" src/main/resources/application-db-properties.yaml
@@ -125,16 +123,13 @@ pipeline {
                                     sed -i "s|\\${ONPREM_DB_USERNAME}|$ONPREM_DB_USERNAME|g" src/main/resources/application-db-properties.yaml
                                     sed -i "s|\\${ONPREM_DB_PASSWORD}|$ONPREM_DB_PASSWORD|g" src/main/resources/application-db-properties.yaml
                                     
-                                    # Redis Properties
-                                    cp $REDIS_PROPERTIES src/main/resources/application-redis.properties.yaml
-                                    
-                                    # Other Properties
-                                    cp $KOREA_PROPERTIES src/main/resources/application-koreainvestment.properties.yaml
-                                    cp $OAUTH_PROPERTIES src/main/resources/application-oauth.properties.yaml
-                                    cp $EMAIL_PROPERTIES src/main/resources/application-email.properties.yaml
+                                    cp -f $REDIS_PROPERTIES src/main/resources/application-redis.properties.yaml
+                                    cp -f $KOREA_PROPERTIES src/main/resources/application-koreainvestment.properties.yaml
+                                    cp -f $OAUTH_PROPERTIES src/main/resources/application-oauth.properties.yaml
+                                    cp -f $EMAIL_PROPERTIES src/main/resources/application-email.properties.yaml
                                     
                                     echo "Spring 애플리케이션 빌드 중..."
-                                    ./gradlew clean build -x test
+                                    ./gradlew clean build -x test --no-daemon
                                     
                                     echo "빌드 결과 확인..."
                                     ls -la build/libs/
@@ -153,70 +148,72 @@ pipeline {
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     script {
-                        try {
-                            echo "단계: Docker 이미지 빌드 시작"
-                            sh """
-                                echo "Docker 빌드 컨텍스트 확인..."
-                                ls -la
-                                
-                                echo "Docker 이미지 빌드 중... (태그: ${DOCKER_TAG})"
-                                docker build -t ${ECR_REPOSITORY}:${DOCKER_TAG} .
-                                
-                                echo "빌드된 Docker 이미지 확인"
-                                docker images | grep ${ECR_REPOSITORY}
-                            """
-                            echo "Docker 이미지 빌드 완료"
-                        } catch (Exception e) {
-                            error("Docker 이미지 빌드 중 오류 발생: ${e.message}")
-                        }
+                        echo "단계: Docker 이미지 빌드 시작"
+                        sh '''
+                            echo "Docker 빌드 컨텍스트 확인..."
+                            ls -la
+                            
+                            # JAR 파일 존재 확인
+                            if [ ! -f build/libs/coconut-0.0.1-SNAPSHOT.jar ]; then
+                                echo "Error: JAR file not found!"
+                                exit 1
+                            fi
+                            
+                            echo "Docker 이미지 빌드 중... (태그: ${DOCKER_TAG})"
+                            docker build -t ${ECR_REPOSITORY}:${DOCKER_TAG} .
+                            
+                            echo "빌드된 Docker 이미지 확인"
+                            docker images | grep ${ECR_REPOSITORY}
+                        '''
+                        echo "Docker 이미지 빌드 완료"
                     }
                 }
             }
         }
 
         stage('Push to AWS ECR') {
-    steps {
-        script {
-            try {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'aws-credentials', 
-                        usernameVariable: 'AWS_ACCESS_KEY_ID', 
-                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-                    )
-                ]) {
-                    echo "단계: ECR 푸시 시작"
-                    
-                    def imageExists = sh(
-                        script: "docker images ${ECR_REPOSITORY}:${DOCKER_TAG} --format '{{.Repository}}'",
-                        returnStdout: true
-                    ).trim()
-                    
-                    if (!imageExists) {
-                        error("Docker 이미지 ${ECR_REPOSITORY}:${DOCKER_TAG}를 찾을 수 없습니다")
+            steps {
+                script {
+                    try {
+                        withCredentials([
+                            usernamePassword(
+                                credentialsId: 'aws-credentials',
+                                usernameVariable: 'AWS_ACCESS_KEY_ID',
+                                passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                            )
+                        ]) {
+                            echo "단계: ECR 푸시 시작"
+                            
+                            def imageExists = sh(
+                                script: "docker images ${ECR_REPOSITORY}:${DOCKER_TAG} --format '{{.Repository}}'",
+                                returnStdout: true
+                            ).trim()
+                            
+                            if (!imageExists) {
+                                error("Docker 이미지 ${ECR_REPOSITORY}:${DOCKER_TAG}를 찾을 수 없습니다")
+                            }
+                            
+                            sh """
+                                echo "ECR 로그인 중..."
+                                aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com
+                                
+                                echo "이미지 태깅 중..."
+                                docker tag ${ECR_REPOSITORY}:${DOCKER_TAG} ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPOSITORY}:${DOCKER_TAG}
+                                
+                                echo "ECR로 이미지 푸시 중..."
+                                docker push ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPOSITORY}:${DOCKER_TAG}
+                                
+                                echo "푸시된 이미지 확인 중..."
+                                aws ecr describe-images --repository-name ${ECR_REPOSITORY} --image-ids imageTag=${DOCKER_TAG} --region ap-northeast-2
+                            """
+                            echo "ECR 푸시 완료"
+                        }
+                    } catch (Exception e) {
+                        error("ECR 푸시 중 오류 발생: ${e.message}")
                     }
-                    
-                    sh """
-                        echo "ECR 로그인 중..."
-                        aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com
-                        
-                        echo "이미지 태깅 중..."
-                        docker tag ${ECR_REPOSITORY}:${DOCKER_TAG} ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPOSITORY}:${DOCKER_TAG}
-                        
-                        echo "ECR로 이미지 푸시 중..."
-                        docker push ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPOSITORY}:${DOCKER_TAG}
-                        
-                        echo "푸시된 이미지 확인 중..."
-                        aws ecr describe-images --repository-name ${ECR_REPOSITORY} --image-ids imageTag=${DOCKER_TAG} --region ap-northeast-2
-                    """
-                    echo "ECR 푸시 완료"
                 }
-            } catch (Exception e) {
-                error("ECR 푸시 중 오류 발생: ${e.message}")
             }
         }
-    }
-}
 
         stage('Update Kubernetes Manifests') {
             steps {
