@@ -175,46 +175,48 @@ pipeline {
         }
 
         stage('Push to AWS ECR') {
-            steps {
-                script {
-                    try {
-                        withCredentials([[
-                            credentialsId: 'aws-credentials',
-                            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                        ]]) {
-                            echo "단계: ECR 푸시 시작"
-                            
-                            def imageExists = sh(
-                                script: "docker images ${ECR_REPOSITORY}:${DOCKER_TAG} --format '{{.Repository}}'",
-                                returnStdout: true
-                            ).trim()
-                            
-                            if (!imageExists) {
-                                error("Docker 이미지 ${ECR_REPOSITORY}:${DOCKER_TAG}를 찾을 수 없습니다")
-                            }
-                            
-                            sh """
-                                echo "ECR 로그인 중..."
-                                aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com
-                                
-                                echo "이미지 태깅 중..."
-                                docker tag ${ECR_REPOSITORY}:${DOCKER_TAG} ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPOSITORY}:${DOCKER_TAG}
-                                
-                                echo "ECR로 이미지 푸시 중..."
-                                docker push ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPOSITORY}:${DOCKER_TAG}
-                                
-                                echo "푸시된 이미지 확인 중..."
-                                aws ecr describe-images --repository-name ${ECR_REPOSITORY} --image-ids imageTag=${DOCKER_TAG} --region ap-northeast-2
-                            """
-                            echo "ECR 푸시 완료"
-                        }
-                    } catch (Exception e) {
-                        error("ECR 푸시 중 오류 발생: ${e.message}")
+    steps {
+        script {
+            try {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'aws-credentials', 
+                        usernameVariable: 'AWS_ACCESS_KEY_ID', 
+                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                    )
+                ]) {
+                    echo "단계: ECR 푸시 시작"
+                    
+                    def imageExists = sh(
+                        script: "docker images ${ECR_REPOSITORY}:${DOCKER_TAG} --format '{{.Repository}}'",
+                        returnStdout: true
+                    ).trim()
+                    
+                    if (!imageExists) {
+                        error("Docker 이미지 ${ECR_REPOSITORY}:${DOCKER_TAG}를 찾을 수 없습니다")
                     }
+                    
+                    sh """
+                        echo "ECR 로그인 중..."
+                        aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com
+                        
+                        echo "이미지 태깅 중..."
+                        docker tag ${ECR_REPOSITORY}:${DOCKER_TAG} ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPOSITORY}:${DOCKER_TAG}
+                        
+                        echo "ECR로 이미지 푸시 중..."
+                        docker push ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPOSITORY}:${DOCKER_TAG}
+                        
+                        echo "푸시된 이미지 확인 중..."
+                        aws ecr describe-images --repository-name ${ECR_REPOSITORY} --image-ids imageTag=${DOCKER_TAG} --region ap-northeast-2
+                    """
+                    echo "ECR 푸시 완료"
                 }
+            } catch (Exception e) {
+                error("ECR 푸시 중 오류 발생: ${e.message}")
             }
         }
+    }
+}
 
         stage('Update Kubernetes Manifests') {
             steps {
