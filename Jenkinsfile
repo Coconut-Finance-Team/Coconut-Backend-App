@@ -134,12 +134,12 @@ stage('Build Spring Application') {
                             cp $MONITORING_PROPERTIES src/main/resources/application-monitoring.properties
                             
                             echo "Spring 애플리케이션 빌드 중..."
-                            ./gradlew clean build -x test
+                            ./gradlew clean build -x test --info
                             
                             echo "빌드 결과 확인..."
                             ls -la build/libs/
                             echo "생성된 JAR 파일:"
-                            find build/libs/ -name "*.jar" -type f -exec ls -l {} \\;
+                            find build/libs/ -name "*.jar" -type f -exec ls -l {} \;
                         '''
                     }
                 }
