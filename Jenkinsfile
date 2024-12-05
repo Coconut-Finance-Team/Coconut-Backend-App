@@ -21,25 +21,21 @@ pipeline {
         stage('Cleanup Workspace') {
             steps {
                 script {
-                    try {
-                        echo "시스템 클린업 시작..."
-                        sh '''
-                            echo "Docker 시스템 정리 중..."
-                            docker system prune -af || true
-                            docker volume prune -f || true
-                            docker network prune -f || true
-
-                            echo "이전 빌드 정리 중..."
-                            rm -rf build || true
-                            rm -rf .gradle || true
-
-                            echo "현재 디스크 사용량:"
-                            df -h
-                            echo "Docker 디스크 사용량:"
-                            docker system df
-                        '''
-                    } catch (Exception e) {
-                        echo "클린업 중 오류 발생: ${e.message}"
+                     try {
+                    echo "단계: Docker 이미지 빌드 시작"
+                    sh """
+                        echo "빌드된 JAR 파일 확인..."
+                        ls -la build/libs/
+                        
+                        echo "Docker 빌드 컨텍스트 확인..."
+                        ls -la
+                        
+                        echo "Docker 이미지 빌드 중... (태그: ${DOCKER_TAG})"
+                        docker build -t ${ECR_REPOSITORY}:${DOCKER_TAG} .
+                    """
+                    echo "Docker 이미지 빌드 완료"
+                } catch (Exception e) {
+                    error("Docker 이미지 빌드 중 오류 발생: ${e.message}")
                     }
                 }
             }
