@@ -36,29 +36,48 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults()) // CORS 설정 기본값 적용
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/**").permitAll() // 인증 없이 접근 허용
-                        .anyRequest().authenticated() // 나머지 요청은 인증 필요
+                        // WebSocket 엔드포인트 허용
+                        .requestMatchers("/ws/**").permitAll()
+
+                        // 주식 관련 공개 API 엔드포인트 허용
+                        .requestMatchers("/api/v1/stocks/search/**").permitAll()
+                        .requestMatchers("/api/v1/stocks/*/charts/**").permitAll()
+
+                        // 인증 관련 API 허용
+                        .requestMatchers("/api/v1/authenticate").permitAll()
+                        .requestMatchers("/oauth2/authorization/**").permitAll()
+
+                        // 회원가입 및 이메일 관련 API 허용
+                        .requestMatchers("/api/v1/users/register").permitAll()
+                        .requestMatchers("/api/v1/email/verify/send").permitAll()
+                        .requestMatchers("/api/v1/email/verify").permitAll()
+
+                        // Static 리소스 허용 (필요한 경우)
+                        .requestMatchers("/", "/index.html", "/static/**").permitAll()
+
+                        // 나머지 모든 요청은 인증 필요
+                        .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(authorization -> authorization
-                                .baseUri("/oauth2/authorization") // OAuth2 로그인 엔드포인트
+                                .baseUri("/oauth2/authorization")
                         )
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService)) // 사용자 정보 로딩
-                        .successHandler(oAuth2LoginSuccessHandler) // 로그인 성공 핸들러
-                        .failureHandler(oAuth2LoginFailureHandler) // 로그인 실패 핸들러
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        .successHandler(oAuth2LoginSuccessHandler)
+                        .failureHandler(oAuth2LoginFailureHandler)
                 )
-                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class) // JWT 필터 추가
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 세션 관리: Stateless
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.setContentType("application/json");
                             response.getWriter().write("{\"error\": \"Access Denied\"}");
-                        }) // 인증 실패 시 처리
+                        })
                 );
 
         return http.build();
