@@ -86,80 +86,79 @@ pipeline {
           }
       }
 
-      stage('Build Spring Application') {
-            steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    script {
-                        echo "단계: Spring 애플리케이션 빌드 시작"
-                        timeout(time: 10, unit: 'MINUTES') {
-                            withCredentials([
-                                file(credentialsId: 'application-es', variable: 'ES_PROPERTIES'),
-                                file(credentialsId: 'application-db', variable: 'DB_PROPERTIES'),
-                                file(credentialsId: 'application-koreainvestment', variable: 'KOREA_PROPERTIES'),
-                                file(credentialsId: 'application-oauth', variable: 'OAUTH_PROPERTIES'),
-                                file(credentialsId: 'application-email', variable: 'EMAIL_PROPERTIES'),
-                                file(credentialsId: 'application-redis', variable: 'REDIS_PROPERTIES'),
-                                file(credentialsId: 'application-monitoring', variable: 'MONITORING_PROPERTIES'),
-                                string(credentialsId: 'es-host', variable: 'ES_HOST'),
-                                string(credentialsId: 'cloud-db-url', variable: 'CLOUD_DB_URL'),
-                                string(credentialsId: 'onprem-db-url', variable: 'ONPREM_DB_URL'),
-                                string(credentialsId: 'onprem-read-db-url', variable: 'ONPREM_READ_DB_URL'),
-                                usernamePassword(credentialsId: 'CLOUD_DB_MASTER', usernameVariable: 'CLOUD_DB_USERNAME', passwordVariable: 'CLOUD_DB_PASSWORD'),
-                                usernamePassword(credentialsId: 'ONPREM_DB_MASTER', usernameVariable: 'ONPREM_DB_USERNAME', passwordVariable: 'ONPREM_DB_PASSWORD')
-                            ]) {
-                                sh '''#!/bin/bash
-                                    set -e
-                                    
-                                    echo "Gradle 권한 설정..."
-                                    chmod +x gradlew
-                                    
-                                    echo "Properties 파일 복사..."
-                                    # Properties 파일들을 임시 디렉토리에 복사
-                                    TEMP_DIR=$(mktemp -d)
-                                    
-                                    # ES Properties
-                                    cp "$ES_PROPERTIES" "$TEMP_DIR/application-es.properties"
-                                    sed -i "s|\\${ES_HOST}|$ES_HOST|g" "$TEMP_DIR/application-es.properties"
-                                    
-                                    # DB Properties
-                                    cp "$DB_PROPERTIES" "$TEMP_DIR/application-db.properties"
-                                    sed -i "s|\\${CLOUD_DB_URL}|$CLOUD_DB_URL|g" "$TEMP_DIR/application-db.properties"
-                                    sed -i "s|\\${CLOUD_DB_USERNAME}|$CLOUD_DB_USERNAME|g" "$TEMP_DIR/application-db.properties"
-                                    sed -i "s|\\${CLOUD_DB_PASSWORD}|$CLOUD_DB_PASSWORD|g" "$TEMP_DIR/application-db.properties"
-                                    sed -i "s|\\${ONPREM_DB_URL}|$ONPREM_DB_URL|g" "$TEMP_DIR/application-db.properties"
-                                    sed -i "s|\\${ONPREM_READ_DB_URL}|$ONPREM_READ_DB_URL|g" "$TEMP_DIR/application-db.properties"
-                                    sed -i "s|\\${ONPREM_DB_USERNAME}|$ONPREM_DB_USERNAME|g" "$TEMP_DIR/application-db.properties"
-                                    sed -i "s|\\${ONPREM_DB_PASSWORD}|$ONPREM_DB_PASSWORD|g" "$TEMP_DIR/application-db.properties"
-                                    
-                                    # 다른 Properties 파일들
-                                    cp "$REDIS_PROPERTIES" "$TEMP_DIR/application-redis.properties"
-                                    cp "$KOREA_PROPERTIES" "$TEMP_DIR/application-koreainvestment.properties"
-                                    cp "$OAUTH_PROPERTIES" "$TEMP_DIR/application-oauth.properties"
-                                    cp "$EMAIL_PROPERTIES" "$TEMP_DIR/application-email.properties"
-                                    cp "$MONITORING_PROPERTIES" "$TEMP_DIR/application-monitoring.properties"
-                                    
-                                    # 모든 properties 파일을 resources 디렉토리로 이동
-                                    cp "$TEMP_DIR"/*.properties src/main/resources/
-                                    
-                                    # 임시 디렉토리 삭제
-                                    rm -rf "$TEMP_DIR"
-                                    
-                                    # Properties 파일 권한 설정
-                                    chmod 644 src/main/resources/*.properties
-                                    
-                                    echo "Spring 애플리케이션 빌드 중..."
-                                    ./gradlew clean build -x test --stacktrace --info
-                                    
-                                    echo "빌드 결과 확인..."
-                                    ls -la build/libs/
-                                '''
-                            }
-                        }
-                        echo "Spring 애플리케이션 빌드 완료"
+     stage('Build Spring Application') {
+    steps {
+        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+            script {
+                echo "단계: Spring 애플리케이션 빌드 시작"
+                timeout(time: 10, unit: 'MINUTES') {
+                    withCredentials([
+                        file(credentialsId: 'application-es', variable: 'ES_PROPERTIES'),
+                        file(credentialsId: 'application-db', variable: 'DB_PROPERTIES'),
+                        file(credentialsId: 'application-koreainvestment', variable: 'KOREA_PROPERTIES'),
+                        file(credentialsId: 'application-oauth', variable: 'OAUTH_PROPERTIES'),
+                        file(credentialsId: 'application-email', variable: 'EMAIL_PROPERTIES'),
+                        file(credentialsId: 'application-redis', variable: 'REDIS_PROPERTIES'),
+                        file(credentialsId: 'application-monitoring', variable: 'MONITORING_PROPERTIES'),
+                        string(credentialsId: 'cloud-db-url', variable: 'CLOUD_DB_URL'),
+                        string(credentialsId: 'onprem-db-url', variable: 'ONPREM_DB_URL'),
+                        string(credentialsId: 'onprem-read-db-url', variable: 'ONPREM_READ_DB_URL'),
+                        usernamePassword(credentialsId: 'CLOUD_DB_MASTER', usernameVariable: 'CLOUD_DB_USERNAME', passwordVariable: 'CLOUD_DB_PASSWORD'),
+                        usernamePassword(credentialsId: 'ONPREM_DB_MASTER', usernameVariable: 'ONPREM_DB_USERNAME', passwordVariable: 'ONPREM_DB_PASSWORD')
+                    ]) {
+                        sh '''#!/bin/bash
+                            set -e
+                            
+                            echo "Gradle 권한 설정..."
+                            chmod +x gradlew
+                            
+                            echo "Properties 파일 복사..."
+                            # Properties 파일들을 임시 디렉토리에 복사
+                            TEMP_DIR=$(mktemp -d)
+                            
+                            # ES Properties (이미 주소 포함됨)
+                            cp "$ES_PROPERTIES" "$TEMP_DIR/application-es.properties"
+                            
+                            # DB Properties
+                            cp "$DB_PROPERTIES" "$TEMP_DIR/application-db.properties"
+                            sed -i "s|\\${CLOUD_DB_URL}|$CLOUD_DB_URL|g" "$TEMP_DIR/application-db.properties"
+                            sed -i "s|\\${CLOUD_DB_USERNAME}|$CLOUD_DB_USERNAME|g" "$TEMP_DIR/application-db.properties"
+                            sed -i "s|\\${CLOUD_DB_PASSWORD}|$CLOUD_DB_PASSWORD|g" "$TEMP_DIR/application-db.properties"
+                            sed -i "s|\\${ONPREM_DB_URL}|$ONPREM_DB_URL|g" "$TEMP_DIR/application-db.properties"
+                            sed -i "s|\\${ONPREM_READ_DB_URL}|$ONPREM_READ_DB_URL|g" "$TEMP_DIR/application-db.properties"
+                            sed -i "s|\\${ONPREM_DB_USERNAME}|$ONPREM_DB_USERNAME|g" "$TEMP_DIR/application-db.properties"
+                            sed -i "s|\\${ONPREM_DB_PASSWORD}|$ONPREM_DB_PASSWORD|g" "$TEMP_DIR/application-db.properties"
+                            
+                            # 다른 Properties 파일들
+                            cp "$REDIS_PROPERTIES" "$TEMP_DIR/application-redis.properties"
+                            cp "$KOREA_PROPERTIES" "$TEMP_DIR/application-koreainvestment.properties"
+                            cp "$OAUTH_PROPERTIES" "$TEMP_DIR/application-oauth.properties"
+                            cp "$EMAIL_PROPERTIES" "$TEMP_DIR/application-email.properties"
+                            cp "$MONITORING_PROPERTIES" "$TEMP_DIR/application-monitoring.properties"
+                            
+                            # 모든 properties 파일을 resources 디렉토리로 이동
+                            cp "$TEMP_DIR"/*.properties src/main/resources/
+                            
+                            # 임시 디렉토리 삭제
+                            rm -rf "$TEMP_DIR"
+                            
+                            # Properties 파일 권한 설정
+                            chmod 644 src/main/resources/*.properties
+                            
+                            echo "Spring 애플리케이션 빌드 중..."
+                            ./gradlew clean build -x test --stacktrace --info
+                            
+                            echo "빌드 결과 확인..."
+                            ls -la build/libs/
+                        '''
                     }
                 }
+                echo "Spring 애플리케이션 빌드 완료"
             }
         }
+    }
+}
+
 
       stage('Build Docker Image') {
           steps {
