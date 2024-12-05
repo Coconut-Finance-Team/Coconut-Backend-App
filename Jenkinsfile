@@ -97,6 +97,7 @@ stage('Build Spring Application') {
                         file(credentialsId: 'application-oauth', variable: 'OAUTH_PROPERTIES'),
                         file(credentialsId: 'application-email', variable: 'EMAIL_PROPERTIES'),
                         file(credentialsId: 'application-redis', variable: 'REDIS_PROPERTIES'),
+                        file(credentialsId: 'application-monitoring', variable: 'MONITORING_PROPERTIES'),
                         string(credentialsId: 'es-host', variable: 'ES_HOST'),
                         string(credentialsId: 'cloud-db-url', variable: 'CLOUD_DB_URL'),
                         string(credentialsId: 'onprem-db-url', variable: 'ONPREM_DB_URL'),
@@ -132,6 +133,9 @@ stage('Build Spring Application') {
                             cp $KOREA_PROPERTIES src/main/resources/application-koreainvestment.properties
                             cp $OAUTH_PROPERTIES src/main/resources/application-oauth.properties
                             cp $EMAIL_PROPERTIES src/main/resources/application-email.properties
+
+                            # Monitoring Properties 추가
+                            cp $MONITORING_PROPERTIES src/main/resources/application-monitoring.properties
                             
                             echo "Spring 애플리케이션 빌드 중..."
                             ./gradlew clean build -x test
