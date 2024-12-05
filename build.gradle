@@ -34,7 +34,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
 	// Spring Data Elasticsearch
-	implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
+//	implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
 
 	// Jackson for JSON Processing
 	implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'

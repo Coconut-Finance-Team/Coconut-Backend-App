@@ -2,9 +2,7 @@ package com.coconut.stock_app.websocket;
 
 import com.coconut.stock_app.entity.cloud.Stock;
 import com.coconut.stock_app.entity.cloud.StockStatus;
-import com.coconut.stock_app.entity.elasticsearch.StockDocument;
 import com.coconut.stock_app.repository.cloud.StockRepository;
-import com.coconut.stock_app.repository.elasticsearch.StockSearchRepository;
 import jakarta.annotation.PostConstruct;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -21,7 +19,7 @@ import org.springframework.stereotype.Component;
 public class StockInitializer {
 
     private final StockRepository stockRepository;
-  //  private final StockSearchRepository stockSearchRepository;
+//    private final StockSearchRepository stockSearchRepository;
 
     @PostConstruct
     private void initializeStocks() {
@@ -75,7 +73,7 @@ public class StockInitializer {
                 Stock savedStock = stockRepository.save(stock);
 
                 // ElasticSearch에 색인 추가
-             //   indexStockInElasticsearch(savedStock);
+//                indexStockInElasticsearch(savedStock);
             }
         }
     }
