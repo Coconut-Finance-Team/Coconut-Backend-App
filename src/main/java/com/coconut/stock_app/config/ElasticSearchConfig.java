@@ -19,7 +19,7 @@ public class ElasticSearchConfig extends ElasticsearchConfiguration {
     public ClientConfiguration clientConfiguration() {
         // 리스트를 배열로 변환하여 전달
         return ClientConfiguration.builder()
-                .connectedTo(elasticsearchUrls.toArray(new String[0])) // 배열로 전달
+                .connectedTo(elasticsearchUrls.toArray(new String[1])) // 배열로 전달
                 .build();
     }
 }
