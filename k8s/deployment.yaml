@@ -22,6 +22,11 @@ spec:
       labels:
         app: backend
     spec:
+      tolerations:      # 여기에 추가
+      - key: "dedicated"
+        operator: "Equal"
+        value: "backend"
+        effect: "NoSchedule"
       containers:
       - name: backend
         image: 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/castlehoo/backend:65
