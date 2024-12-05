@@ -9,14 +9,14 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 @Configuration
 @EnableElasticsearchRepositories(basePackages = "com.coconut.stock_app.repository.elasticsearch")
 public class ElasticSearchConfig extends ElasticsearchConfiguration {
-
+    
     @Value("${spring.elasticsearch.uris}")
-    private String elasticsearchUrl;
+    private String elasticsearchUrl;  // 단일 URL로 변경
 
     @Override
     public ClientConfiguration clientConfiguration() {
         return ClientConfiguration.builder()
-                .connectedTo(elasticsearchUrl.split(","))
+                .connectedTo(elasticsearchUrl.replace("http://", ""))  // http:// 제거
                 .build();
     }
 }
