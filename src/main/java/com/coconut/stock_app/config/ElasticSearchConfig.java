@@ -10,13 +10,14 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 @EnableElasticsearchRepositories(basePackages = "com.coconut.stock_app.repository.elasticsearch")
 public class ElasticSearchConfig extends ElasticsearchConfiguration {
 
-    @Value("${spring.elasticsearch.uris}")
-    private String elasticsearchUrl;
+    @Value("${spring.elasticsearch.rest.uris}")
+    private List<String> elasticsearchUrls; // 배열 형태로 값 주입
 
     @Override
     public ClientConfiguration clientConfiguration() {
+        // 리스트를 배열로 변환하여 전달
         return ClientConfiguration.builder()
-                .connectedTo(elasticsearchUrl.replace("http://", ""))
+                .connectedTo(elasticsearchUrls.toArray(new String[0])) // 배열로 전달
                 .build();
     }
 }
