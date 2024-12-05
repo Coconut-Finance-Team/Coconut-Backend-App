@@ -6,6 +6,8 @@ import org.springframework.data.elasticsearch.client.ClientConfiguration;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfiguration;
 import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 
+import java.util.List;
+
 @Configuration
 @EnableElasticsearchRepositories(basePackages = "com.coconut.stock_app.repository.elasticsearch")
 public class ElasticSearchConfig extends ElasticsearchConfiguration {
