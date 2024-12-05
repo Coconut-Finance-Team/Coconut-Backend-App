@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 public class StockInitializer {
 
     private final StockRepository stockRepository;
-    private final StockSearchRepository stockSearchRepository;
+  //  private final StockSearchRepository stockSearchRepository;
 
     @PostConstruct
     private void initializeStocks() {
@@ -75,22 +75,22 @@ public class StockInitializer {
                 Stock savedStock = stockRepository.save(stock);
 
                 // ElasticSearch에 색인 추가
-                indexStockInElasticsearch(savedStock);
+             //   indexStockInElasticsearch(savedStock);
             }
         }
     }
 
-    private void indexStockInElasticsearch(Stock stock) {
-        try {
-            StockDocument document = StockDocument.builder()
-                    .stockCode(stock.getStockCode())
-                    .stockName(stock.getStockName())
-                    .build();
-
-            stockSearchRepository.save(document);
-            log.info("ElasticSearch에 색인 완료: {}", stock.getStockName());
-        } catch (Exception e) {
-            log.error("ElasticSearch 색인 실패: {}", stock.getStockName(), e);
-        }
-    }
+//    private void indexStockInElasticsearch(Stock stock) {
+//        try {
+//            StockDocument document = StockDocument.builder()
+//                    .stockCode(stock.getStockCode())
+//                    .stockName(stock.getStockName())
+//                    .build();
+//
+//            stockSearchRepository.save(document);
+//            log.info("ElasticSearch에 색인 완료: {}", stock.getStockName());
+//        } catch (Exception e) {
+//            log.error("ElasticSearch 색인 실패: {}", stock.getStockName(), e);
+//        }
+//    }
 }
