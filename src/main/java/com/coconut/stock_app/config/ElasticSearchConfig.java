@@ -12,7 +12,7 @@ import java.util.List;
 @EnableElasticsearchRepositories(basePackages = "com.coconut.stock_app.repository.elasticsearch")
 public class ElasticSearchConfig extends ElasticsearchConfiguration {
 
-    @Value("${spring.elasticsearch.rest.uris}")
+    @Value("${spring.elasticsearch.uris}")
     private List<String> elasticsearchUrls; // 배열 형태로 값 주입
 
     @Override
