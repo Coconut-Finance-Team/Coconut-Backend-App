@@ -52,6 +52,12 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
         env:
+        # Monitoring Configuration
+        - name: MONITORING_CONFIG
+          valueFrom:
+            secretKeyRef:
+              name: application-monitoring
+              key: application-monitoring.properties
         # Cloud DB Configuration
         - name: CLOUD_DB_HOST
           valueFrom:
