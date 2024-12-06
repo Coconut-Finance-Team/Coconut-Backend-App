@@ -29,7 +29,7 @@ spec:
         effect: "NoSchedule"
       containers:
       - name: backend
-        image: 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/castlehoo/backend:96
+        image: 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/castlehoo/backend:97
         ports:
         - containerPort: 8080
         resources:
