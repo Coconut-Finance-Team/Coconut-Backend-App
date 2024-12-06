@@ -98,7 +98,6 @@ pipeline {
                         file(credentialsId: 'application-oauth', variable: 'OAUTH_PROPERTIES'),
                         file(credentialsId: 'application-email', variable: 'EMAIL_PROPERTIES'),
                         file(credentialsId: 'application-redis', variable: 'REDIS_PROPERTIES'),
-                        file(credentialsId: 'application-monitoring', variable: 'MONITORING_PROPERTIES'),
                         string(credentialsId: 'cloud-db-url', variable: 'CLOUD_DB_URL'),
                         string(credentialsId: 'onprem-db-url', variable: 'ONPREM_DB_URL'),
                         string(credentialsId: 'onprem-read-db-url', variable: 'ONPREM_READ_DB_URL'),
@@ -130,8 +129,7 @@ pipeline {
                             cp "$KOREA_PROPERTIES" "$TEMP_DIR/application-koreainvestment.properties"
                             cp "$OAUTH_PROPERTIES" "$TEMP_DIR/application-oauth.properties"
                             cp "$EMAIL_PROPERTIES" "$TEMP_DIR/application-email.properties"
-                            cp "$MONITORING_PROPERTIES" "$TEMP_DIR/application-monitoring.properties"
-                            
+                                                      
                             # 모든 properties 파일을 resources 디렉토리로 이동
                             cp "$TEMP_DIR"/*.properties src/main/resources/
                             
