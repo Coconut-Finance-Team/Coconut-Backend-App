@@ -57,6 +57,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/email/verify/send").permitAll()
                         .requestMatchers("/api/v1/email/verify").permitAll()
 
+                        .requestMatchers("/api/v1/ipo/active").permitAll()
+
                         // Static 리소스 허용 (필요한 경우)
                         .requestMatchers("/", "/index.html", "/static/**").permitAll()
 
