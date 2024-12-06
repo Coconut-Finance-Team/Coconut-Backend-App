@@ -42,7 +42,7 @@ public class SecurityConfig {
                         .requestMatchers("/ws/**").permitAll()
 
                         // 주식 관련 공개 API 엔드포인트 허용
-                        .requestMatchers("/api/v1/stocks/search/**").permitAll()
+//                        .requestMatchers("/api/v1/stocks/search/**").permitAll()
                         .requestMatchers("/api/v1/stocks/*/charts/**").permitAll()
 
                         // 인증 관련 API 허용
