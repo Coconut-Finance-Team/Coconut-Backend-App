@@ -22,14 +22,14 @@ spec:
       labels:
         app: backend
     spec:
-      tolerations:      # 여기에 추가
+      tolerations:
       - key: "dedicated"
         operator: "Equal"
         value: "backend"
         effect: "NoSchedule"
       containers:
       - name: backend
-        image: 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/castlehoo/backend:98
+        image: 992382629018.dkr.ecr.ap-northeast-2.amazonaws.com/castlehoo/backend:99
         ports:
         - containerPort: 8080
         resources:
@@ -52,6 +52,12 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
         env:
+        # Spring Application JSON Configuration
+        - name: SPRING_APPLICATION_JSON
+          valueFrom:
+            configMapKeyRef:
+              name: spring-config
+              key: SPRING_APPLICATION_JSON
         # Monitoring Configuration
         - name: MONITORING_CONFIG
           valueFrom:
@@ -84,7 +90,6 @@ spec:
             secretKeyRef:
               name: db-redis-secret
               key: CLOUD_MASTER_PASSWORD
-              
         # On-premise DB Configuration
         - name: ONPREM_DB_HOST
           valueFrom:
@@ -111,7 +116,6 @@ spec:
             secretKeyRef:
               name: db-redis-secret
               key: ONPREM_MASTER_PASSWORD
-              
         # Redis Configuration
         - name: SPRING_REDIS_HOST
           valueFrom:
