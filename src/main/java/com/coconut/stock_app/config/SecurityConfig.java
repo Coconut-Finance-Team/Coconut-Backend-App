@@ -38,8 +38,6 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authz -> authz
-                        // Actuator 헬스체크 엔드포인트 허용
-                        .requestMatchers("/actuator/health").permitAll()
 
                         // WebSocket 엔드포인트 허용
                         .requestMatchers("/ws/**").permitAll()
