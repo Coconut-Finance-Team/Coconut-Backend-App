@@ -93,7 +93,6 @@ pipeline {
                 echo "단계: Spring 애플리케이션 빌드 시작"
                 timeout(time: 10, unit: 'MINUTES') {
                     withCredentials([
-                        file(credentialsId: 'application-es', variable: 'ES_PROPERTIES'),
                         file(credentialsId: 'application-db', variable: 'DB_PROPERTIES'),
                         file(credentialsId: 'application-koreainvestment', variable: 'KOREA_PROPERTIES'),
                         file(credentialsId: 'application-oauth', variable: 'OAUTH_PROPERTIES'),
@@ -115,9 +114,6 @@ pipeline {
                             echo "Properties 파일 복사..."
                             # Properties 파일들을 임시 디렉토리에 복사
                             TEMP_DIR=$(mktemp -d)
-                            
-                            # ES Properties (이미 주소 포함됨)
-                            cp "$ES_PROPERTIES" "$TEMP_DIR/application-es.properties"
                             
                             # DB Properties
                             cp "$DB_PROPERTIES" "$TEMP_DIR/application-db.properties"
