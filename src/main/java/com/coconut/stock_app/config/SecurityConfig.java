@@ -43,7 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health/**").permitAll()
 
                         // WebSocket 엔드포인트 허용
-                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/wss/**").permitAll()
 
                         // 주식 관련 공개 API 엔드포인트 허용
                         .requestMatchers("/api/v1/stocks/*/charts/**").permitAll()
